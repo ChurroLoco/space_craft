@@ -3,9 +3,9 @@ using System.Collections;
 
 public class TerrainControllerScript : MonoBehaviour
 {
-	public const int WIDTH = 1;
+	public const int WIDTH = 8;
 	public const int HEIGHT = 1;
-	public const int DEPTH = 1;
+	public const int DEPTH = 8;
 	
 	public const string CHUNK_PREFAB_PATH = "Prefabs/Chunk";
 	
@@ -45,7 +45,10 @@ public class TerrainControllerScript : MonoBehaviour
 					{
 						Debug.LogError(string.Format("Chunk prefab could not be loaded from '{0}'", CHUNK_PREFAB_PATH));	
 					}
-					yield return new WaitForSeconds(0.5f);
+					yield return null;
+					yield return null;
+					yield return null;
+					yield return null;
 				}
 			}
 		}
