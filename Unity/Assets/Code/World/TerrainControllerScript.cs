@@ -3,10 +3,12 @@ using System.Collections;
 
 public class TerrainControllerScript : MonoBehaviour
 {
-	public const int WIDTH = 8;
-	public const int HEIGHT = 1;
-	public const int DEPTH = 8;
-	
+	public const int WIDTH = 4;
+	public const int HEIGHT = 2;
+	public const int DEPTH = 4;
+
+	public const int TERRAIN_HEIGHT = HEIGHT * BlockChunkScript.HEIGHT;	
+
 	public const string CHUNK_PREFAB_PATH = "Prefabs/Chunk";
 	
 	private BlockChunkScript[,,] chunks = new BlockChunkScript[WIDTH, HEIGHT, DEPTH];
@@ -15,6 +17,8 @@ public class TerrainControllerScript : MonoBehaviour
 	{
 		//Instantiate(Resources.Load("Prefabs/Chunk"));
 		StartCoroutine("GenerateWorld");
+
+
 	}
 	
 	public IEnumerator GenerateWorld()
@@ -45,10 +49,7 @@ public class TerrainControllerScript : MonoBehaviour
 					{
 						Debug.LogError(string.Format("Chunk prefab could not be loaded from '{0}'", CHUNK_PREFAB_PATH));	
 					}
-					yield return null;
-					yield return null;
-					yield return null;
-					yield return null;
+					yield return new WaitForSeconds(0.2f);
 				}
 			}
 		}

@@ -5,15 +5,14 @@ using System.Collections.Generic;
 
 [RequireComponent (typeof (MeshFilter))]
 [RequireComponent (typeof (MeshCollider))]
-[RequireComponent (typeof (Rigidbody))]
 [RequireComponent (typeof (MeshRenderer))]
 public class BlockChunkScript : MonoBehaviour
 {	
 	public const int VERTS_PER_BLOCK = 24;
 	
-	public const int WIDTH = 16;
-	public const int HEIGHT = 16;	
-	public const int DEPTH = 16;
+	public const int WIDTH = 8;
+	public const int HEIGHT = 8;	
+	public const int DEPTH = 8;
 	public long id;
 	public MeshCollider meshCollider;
 	public MeshFilter meshFilter;
@@ -22,7 +21,7 @@ public class BlockChunkScript : MonoBehaviour
 		
 	void Start ()
 	{	
-		RandomBlocks();
+		SinBlock(0.3f, 0.6f, 0.7f, 0.3f);
 		GenerateGeometry();
 	}
 	
@@ -35,6 +34,28 @@ public class BlockChunkScript : MonoBehaviour
 				for (int z = 0; z < DEPTH; z++)
 				{
 					blocks[x, y, z] = 1;
+				}
+			}
+		}
+	}
+
+	private void SinBlock(float xFreq, float zFreq, float xAmp, float zAmp)
+	{
+		for (int x = 0; x < WIDTH; x++)
+		{
+			for (int y = 0; y < HEIGHT; y++)
+			{
+				for (int z = 0; z < DEPTH; z++)
+				{
+					float xWorldPos = (transform.position.x * WIDTH) + x;
+					float zWorldPos = (transform.position.z * DEPTH) + z;
+					float xSin = ((Mathf.Sin(xWorldPos * xFreq) + 1)/2) * xAmp;
+					float zSin = ((Mathf.Sin(zWorldPos * zFreq) + 1)/2) * zAmp;
+					float cutOff = (xSin + zSin)/2;
+
+					float blocksHeight = (transform.position.y * HEIGHT) + y;
+					float normalizedheight = blocksHeight / TerrainControllerScript.TERRAIN_HEIGHT;
+					blocks[x, y, z] = normalizedheight <= cutOff ? 1 : 0;
 				}
 			}
 		}
@@ -207,7 +228,7 @@ public class BlockChunkScript : MonoBehaviour
 		mesh.normals = newChunkNormals.ToArray();
 		mesh.uv = newChunkUVs.ToArray();
 		mesh.triangles = newChunkTrianlges.ToArray();
-		mesh.Optimize();
+		//mesh.Optimize();
 			
 		if (meshFilter != null)
 		{

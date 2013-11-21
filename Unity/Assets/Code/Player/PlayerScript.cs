@@ -6,26 +6,32 @@ public class PlayerScript : MonoBehaviour
 {
 	public CharacterController characterController;
 	public Camera camera;
-	private float walkSpeed = 3.5f;
-	private float jumpSpeed = 5.5f;
+	private float walkSpeed = 2.5f;
+	private float jumpSpeed = 5.0f;
 	private float turnSpeed = 190;
 	public bool isGrounded;
 	public float verticalSpeed = 0;
-	
+
+	public static PlayerScript Spawn(Vector3 position)
+	{
+		GameObject player = Instantiate(Resources.Load("Prefabs/Player")) as GameObject;
+		player.name = "Player";
+		player.transform.position = position;
+		PlayerScript script = player.GetComponent<PlayerScript>();
+		return script;
+	}
 	
 	// Use this for initialization
 	void Start ()
 	{
+		//Camera.main.enabled = false;
 		Screen.lockCursor = true;
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{	
-		
-	
 
-		
 		Vector3 movement = Vector3.zero;
 		movement = transform.forward * Input.GetAxis("Vertical") * walkSpeed;
 		movement += transform.right * Input.GetAxis("Horizontal") * walkSpeed;
@@ -52,6 +58,11 @@ public class PlayerScript : MonoBehaviour
 		movement.y = verticalSpeed;
 		characterController.Move(movement * Time.deltaTime);
 
+	}
+
+	void OnGUI()
+	{
+		GUILayout.Label(transform.position.ToString());
 	}
 }
 
