@@ -55,4 +55,19 @@ public class TerrainControllerScript : MonoBehaviour
 		}
 	}
 
+	int getBlockAt(Vector3 position)
+	{
+		if (position.x < 0 || position.x > WIDTH * BlockChunkScript.WIDTH ||
+		    position.y < 0 || position.y > HEIGHT * BlockChunkScript.HEIGHT ||
+		    position.z < 0 || position.z > DEPTH * BlockChunkScript.DEPTH)
+		{
+			// We're off the map.
+			return 0;
+		}
+		// Get the chunk.
+		BlockChunkScript chunk = chunks[(int)(position.x / WIDTH),(int)(position.y / HEIGHT),(int)(position.z / DEPTH)];
+		// Get the block within the chunk.
+		return chunk.blocks[(int)position.x % BlockChunkScript.WIDTH, (int)position.y % BlockChunkScript.HEIGHT, (int)position.z % BlockChunkScript.DEPTH];
+	}
+
 }
