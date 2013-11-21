@@ -35,15 +35,31 @@ public class Block
 	// This is for raycasting and other stuff.
 	int Layer;
 
+	// Is this block breakable by normal means?
+	bool isBreakable;
+
+	// The ID of the inventory item this block drops.
+	int dropID;
 
 	// Eventually we'll probably want a way for each block to return their own geometry, by face if possible. 
 	// For now, everything is just a cube.
 
+	public void create()
+	{
+		// Create itself and do any initialization stuff. 
+	}
 
+	public void destroy()
+	{
+		// Do any finishing up of stuff. 
+		// Drop anything that this drops. 
+		// Destroy the block.
+	}
 
 
 	// Some notes on other block types that would probably derive from this class:
 	/*
+	 * 
 	 * 
 	 * Non-Cubic Blocks. (Blocks that have Geometry other than a 1x1x1 cube, like stairs or stuff)
 	 * ================
