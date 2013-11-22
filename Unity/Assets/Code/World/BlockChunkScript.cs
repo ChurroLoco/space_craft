@@ -17,7 +17,7 @@ public class BlockChunkScript : MonoBehaviour
 	public MeshCollider meshCollider;
 	public MeshFilter meshFilter;
 	
-	public int[,,] blocks = new int[WIDTH, HEIGHT, DEPTH];
+	public Block[,,] blocks = new Block[WIDTH, HEIGHT, DEPTH];
 		
 	void Start ()
 	{	
@@ -33,7 +33,7 @@ public class BlockChunkScript : MonoBehaviour
 			{
 				for (int z = 0; z < DEPTH; z++)
 				{
-					blocks[x, y, z] = 1;
+					blocks[x, y, z] = new Block(this, 1, x, y, z);
 				}
 			}
 		}
@@ -55,7 +55,11 @@ public class BlockChunkScript : MonoBehaviour
 
 					float blocksHeight = (transform.position.y * HEIGHT) + y;
 					float normalizedheight = blocksHeight / TerrainControllerScript.TERRAIN_HEIGHT;
-					blocks[x, y, z] = normalizedheight <= cutOff ? 1 : 0;
+
+					if (normalizedheight <= cutOff)
+					{
+						blocks[x, y, z] = new Block(this, 1, x, y, z);
+					}
 				}
 			}
 		}
@@ -69,7 +73,10 @@ public class BlockChunkScript : MonoBehaviour
 			{
 				for (int z = 0; z < DEPTH; z++)
 				{
-					blocks[x, y, z] = Random.Range(0, 2);
+					if (Random.Range(0, 2) == 1)
+					{
+						blocks[x, y, z] = new Block(this, 1, x, y, z);
+					}
 				}
 			}
 		}
@@ -80,7 +87,7 @@ public class BlockChunkScript : MonoBehaviour
 		return (x < 0 || x >= WIDTH ||
 				y < 0 || y >= HEIGHT ||
 				z < 0 || z >= DEPTH ||
-				blocks[x, y, z] == 0);
+				blocks[x, y, z] == null);
 	}
 	
 	public bool IsBlockFilled(int x, int y, int z)
@@ -88,29 +95,7 @@ public class BlockChunkScript : MonoBehaviour
 		return (x >= 0 && x < WIDTH &&
 				y >= 0 && y < HEIGHT &&
 				z >= 0 && z < DEPTH &&
-				blocks[x, y, z] != 0);
-	}
-	
-	private static int[] GetFaceIndices(int startIndex)
-	{
-		return new int[6]{
-			startIndex,
-			startIndex + 1,
-			startIndex + 2,
-			startIndex,
-			startIndex + 2,
-			startIndex + 3
-		};
-	}
-	
-	private static Vector2[] GetFaceUVs()
-	{
-		return new Vector2[]{
-			new Vector2(0, 0),
-			new Vector2(0, 1),
-			new Vector2(1, 1),
-			new Vector3(1, 0)
-		};	
+				blocks[x, y, z] != null);
 	}
 		
 	private void GenerateGeometry()
@@ -129,95 +114,13 @@ public class BlockChunkScript : MonoBehaviour
 				{
 					if (IsBlockFilled(x, y, z))
 					{
-						// SOUTH (FRONT)
-						if (IsBlockEmpty(x, y, z - 1))
-						{
-							newChunkVertices.Add(new Vector3(x, y, z));
-							newChunkVertices.Add(new Vector3(x, y + 1, z));
-							newChunkVertices.Add(new Vector3(x + 1, y + 1, z));
-							newChunkVertices.Add(new Vector3(x + 1, y, z));
-							
-							Vector3 faceNormal = Vector3.back;
-							newChunkNormals.AddRange(new Vector3[]{faceNormal, faceNormal, faceNormal, faceNormal});
-							
-							newChunkUVs.AddRange(GetFaceUVs());
-							newChunkTrianlges.AddRange(GetFaceIndices(newChunkVertices.Count - 4));
-						}
+						Block block = blocks[x,y,z];
+						List<Vector3> verts = block.getVerts();
+						newChunkVertices.AddRange(verts);
+						newChunkNormals.AddRange(block.getNormals());
+						newChunkUVs.AddRange(block.getUVs());
+						newChunkTrianlges.AddRange(block.getIndices(newChunkVertices.Count - verts.Count));
 						
-						// TOP 
-						if (IsBlockEmpty(x, y + 1, z))
-						{
-							newChunkVertices.Add(new Vector3(x, y + 1, z));
-							newChunkVertices.Add(new Vector3(x, y + 1, z + 1));
-							newChunkVertices.Add(new Vector3(x + 1, y + 1, z + 1));
-							newChunkVertices.Add(new Vector3(x + 1, y + 1, z));
-							
-							Vector3 faceNormal = Vector3.up;
-							newChunkNormals.AddRange(new Vector3[]{faceNormal, faceNormal, faceNormal, faceNormal});
-							
-							newChunkUVs.AddRange(GetFaceUVs());
-							newChunkTrianlges.AddRange(GetFaceIndices(newChunkVertices.Count - 4));
-						}
-						
-						// NORTH (BACK) 
-						if (IsBlockEmpty(x, y, z + 1))
-						{
-							newChunkVertices.Add(new Vector3(x + 1, y, z + 1));
-							newChunkVertices.Add(new Vector3(x + 1, y + 1, z + 1));
-							newChunkVertices.Add(new Vector3(x, y + 1, z + 1));
-							newChunkVertices.Add(new Vector3(x, y, z + 1));
-							
-							Vector3 faceNormal = Vector3.forward;
-							newChunkNormals.AddRange(new Vector3[]{faceNormal, faceNormal, faceNormal, faceNormal});
-							
-							newChunkUVs.AddRange(GetFaceUVs());
-							newChunkTrianlges.AddRange(GetFaceIndices(newChunkVertices.Count - 4));
-						}
-						
-						// BOTTOM 
-						if (IsBlockEmpty(x, y - 1, z))
-						{
-							newChunkVertices.Add(new Vector3(x, y, z + 1));
-							newChunkVertices.Add(new Vector3(x, y, z));
-							newChunkVertices.Add(new Vector3(x + 1, y, z));
-							newChunkVertices.Add(new Vector3(x + 1, y, z + 1));
-							
-							Vector3 faceNormal = Vector3.down;
-							newChunkNormals.AddRange(new Vector3[]{faceNormal, faceNormal, faceNormal, faceNormal});
-							
-							newChunkUVs.AddRange(GetFaceUVs());
-							newChunkTrianlges.AddRange(GetFaceIndices(newChunkVertices.Count - 4));
-						}
-						
-						// LEFT (WEST) 
-						if (IsBlockEmpty(x - 1, y, z))
-						{
-							newChunkVertices.Add(new Vector3(x, y, z + 1));
-							newChunkVertices.Add(new Vector3(x, y + 1, z + 1));
-							newChunkVertices.Add(new Vector3(x, y + 1, z));
-							newChunkVertices.Add(new Vector3(x, y, z));
-							
-							Vector3 faceNormal = Vector3.left;
-							newChunkNormals.AddRange(new Vector3[]{faceNormal, faceNormal, faceNormal, faceNormal});
-							
-							newChunkUVs.AddRange(GetFaceUVs());
-							newChunkTrianlges.AddRange(GetFaceIndices(newChunkVertices.Count - 4));
-						}
-						
-						// RIGHT (EAST) 
-						if (IsBlockEmpty(x + 1, y, z))
-						{
-							newChunkVertices.Add(new Vector3(x + 1, y, z));
-							newChunkVertices.Add(new Vector3(x + 1, y + 1, z));
-							newChunkVertices.Add(new Vector3(x + 1, y + 1, z + 1));
-							newChunkVertices.Add(new Vector3(x + 1, y, z + 1));
-							
-							Vector3 faceNormal = Vector3.right;
-							newChunkNormals.AddRange(new Vector3[]{faceNormal, faceNormal, faceNormal, faceNormal});
-							
-							newChunkUVs.AddRange(GetFaceUVs());
-							newChunkTrianlges.AddRange(GetFaceIndices(newChunkVertices.Count - 4));
-						}
 					}
 				}
 			}

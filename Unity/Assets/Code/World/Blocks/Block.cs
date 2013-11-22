@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Block
 {
@@ -13,48 +14,350 @@ public class Block
 	// The ID identifier of the block.
 	int id;
 
-	// The ID of the chunk that this block belongs to.
-	int chunkID;
+	// The chunk that this block belongs to.
+	BlockChunkScript chunk;
 
 	// Placememnt of the block relative to it's chunk.
 	int xIndex;
 	int yIndex;
 	int zIndex;
 
-	// Is this block translucent?
-	bool occludes;
-
-	// Do we include this block's geometry in the physics mesh of the chunk?
-	bool isPhysical;
-
-	// Do we include this block's geometry in the visual mesh of it's chunk?
-	bool isVisible;
 
 	// The layer this block resides on. 
 	// Layers would be for things like passable blocks, non-passable blocks, semi-passable blocks, etc. 
 	// This is for raycasting and other stuff.
 	int Layer;
 
+
+	// Is this block translucent?
+	bool occludes;
+
+	// Do we include this block's geometry in the physics mesh of it's chunk?
+	bool isPhysical;
+
+	// Do we include this block's geometry in the visual mesh of it's chunk?
+	bool isVisible;
+
+	// Time in seconds it takes to punch the block to death.
+	int health;
+
 	// Is this block breakable by normal means?
 	bool isBreakable;
-
-	// The ID of the inventory item this block drops.
-	int dropID;
 
 	// Eventually we'll probably want a way for each block to return their own geometry, by face if possible. 
 	// For now, everything is just a cube.
 
-	public void create()
+	// Constructor function.
+	public Block(BlockChunkScript chunk, int blockID, int x, int y, int z)
 	{
-		// Create itself and do any initialization stuff. 
+		this.chunk = chunk;
+		this.id = blockID;
+
+		this.xIndex = x;
+		this.yIndex = y;
+		this.zIndex = z;
+
+		clone();
 	}
 
-	public void destroy()
+	// Clones block specific attributes from a data structure somewhere.
+	private void clone()
+	{
+
+	}
+
+	public void destroy(int toolID)
 	{
 		// Do any finishing up of stuff. 
 		// Drop anything that this drops. 
 		// Destroy the block.
 	}
+
+	// Returns the triangle indices for a face. 
+	public virtual List<int> getIndices(int startIndex)
+	{
+		List <int> indices = new List<int>();
+
+		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex - 1))
+		{
+			indices.AddRange(new int[6]{
+				startIndex,
+				startIndex + 1,
+				startIndex + 2,
+				startIndex,
+				startIndex + 2,
+				startIndex + 3
+			});
+			startIndex += 4;
+		}
+
+		if (chunk.IsBlockEmpty(xIndex, yIndex + 1, zIndex))
+		{
+			indices.AddRange(new int[6]{
+				startIndex,
+				startIndex + 1,
+				startIndex + 2,
+				startIndex,
+				startIndex + 2,
+				startIndex + 3
+			});
+			startIndex += 4;
+		}
+
+		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex + 1))
+		{
+			indices.AddRange(new int[6]{
+				startIndex,
+				startIndex + 1,
+				startIndex + 2,
+				startIndex,
+				startIndex + 2,
+				startIndex + 3
+			});
+			startIndex += 4;
+		}
+		 
+		if (chunk.IsBlockEmpty(xIndex, yIndex - 1, zIndex))
+		{
+			indices.AddRange(new int[6]{
+				startIndex,
+				startIndex + 1,
+				startIndex + 2,
+				startIndex,
+				startIndex + 2,
+				startIndex + 3
+			});
+			startIndex += 4;
+		}
+
+		if (chunk.IsBlockEmpty(xIndex - 1, yIndex, zIndex))
+		{
+			indices.AddRange(new int[6]{
+				startIndex,
+				startIndex + 1,
+				startIndex + 2,
+				startIndex,
+				startIndex + 2,
+				startIndex + 3
+			});
+			startIndex += 4;
+		}
+
+		if (chunk.IsBlockEmpty(xIndex + 1, yIndex, zIndex))
+		{
+			indices.AddRange(new int[6]{
+				startIndex,
+				startIndex + 1,
+				startIndex + 2,
+				startIndex,
+				startIndex + 2,
+				startIndex + 3
+			});
+		}
+		return indices;
+	}
+
+	// Returns the UV mappings for a face.
+	public virtual List<Vector2> getUVs()
+	{
+		List<Vector2> uvs = new List<Vector2>();
+
+		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex - 1))
+		{
+			uvs.AddRange(new Vector2[]{
+				new Vector2(0, 0),
+				new Vector2(0, 1),
+				new Vector2(1, 1),
+				new Vector3(1, 0)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex + 1, zIndex))
+		{
+			uvs.AddRange(new Vector2[]{
+				new Vector2(0, 0),
+				new Vector2(0, 1),
+				new Vector2(1, 1),
+				new Vector3(1, 0)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex + 1))
+		{
+			uvs.AddRange(new Vector2[]{
+				new Vector2(0, 0),
+				new Vector2(0, 1),
+				new Vector2(1, 1),
+				new Vector3(1, 0)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex - 1, zIndex))
+		{
+			uvs.AddRange(new Vector2[]{
+				new Vector2(0, 0),
+				new Vector2(0, 1),
+				new Vector2(1, 1),
+				new Vector3(1, 0)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex - 1, yIndex, zIndex))
+		{
+			uvs.AddRange(new Vector2[]{
+				new Vector2(0, 0),
+				new Vector2(0, 1),
+				new Vector2(1, 1),
+				new Vector3(1, 0)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex + 1, yIndex, zIndex))
+		{
+			uvs.AddRange(new Vector2[]{
+				new Vector2(0, 0),
+				new Vector2(0, 1),
+				new Vector2(1, 1),
+				new Vector3(1, 0)
+			});
+		}
+		return uvs;
+	}
+
+	// Returns the Normals for the verts of a face.
+	public virtual List<Vector3> getNormals()
+	{
+		List<Vector3> normals = new List<Vector3>();
+
+		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex - 1))
+		{
+			normals.AddRange(new Vector3[]{
+				Vector3.back, 
+				Vector3.back, 
+				Vector3.back, 
+				Vector3.back
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex + 1, zIndex))
+		{
+			normals.AddRange(new Vector3[]{
+				Vector3.up, 
+				Vector3.up, 
+				Vector3.up, 
+				Vector3.up
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex + 1))
+		{
+			normals.AddRange(new Vector3[]{
+				Vector3.forward, 
+				Vector3.forward, 
+				Vector3.forward, 
+				Vector3.forward
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex - 1, zIndex))
+		{
+			normals.AddRange(new Vector3[]{
+				Vector3.down, 
+				Vector3.down, 
+				Vector3.down, 
+				Vector3.down
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex - 1, yIndex, zIndex))
+		{
+			normals.AddRange(new Vector3[]{
+				Vector3.left, 
+				Vector3.left, 
+				Vector3.left, 
+				Vector3.left
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex + 1, yIndex, zIndex))
+		{
+			normals.AddRange(new Vector3[]{
+				Vector3.right, 
+				Vector3.right, 
+				Vector3.right, 
+				Vector3.right
+			});
+		}
+		return normals;
+	}
+
+	// Returns the verts that make up a face of the geometry.
+	public virtual List<Vector3> getVerts()
+	{
+		List<Vector3> verts = new List<Vector3>();
+		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex - 1))
+		{
+			verts.AddRange(new Vector3[]{
+				new Vector3(xIndex, yIndex, zIndex),
+				new Vector3(xIndex, yIndex + 1, zIndex),
+				new Vector3(xIndex + 1, yIndex + 1, zIndex),
+				new Vector3(xIndex + 1, yIndex, zIndex)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex + 1, zIndex))
+		{
+			verts.AddRange(new Vector3[]{
+				new Vector3(xIndex, yIndex + 1, zIndex),
+				new Vector3(xIndex, yIndex + 1, zIndex + 1),
+				new Vector3(xIndex + 1, yIndex + 1, zIndex + 1),
+				new Vector3(xIndex + 1, yIndex + 1, zIndex)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex + 1))
+		{
+			verts.AddRange(new Vector3[]{
+				new Vector3(xIndex + 1, yIndex, zIndex + 1),
+				new Vector3(xIndex + 1, yIndex + 1, zIndex + 1),
+				new Vector3(xIndex, yIndex + 1, zIndex + 1),
+				new Vector3(xIndex, yIndex, zIndex + 1)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex, yIndex - 1, zIndex))
+		{
+			verts.AddRange(new Vector3[]{
+				new Vector3(xIndex, yIndex, zIndex + 1),
+				new Vector3(xIndex, yIndex, zIndex),
+				new Vector3(xIndex + 1, yIndex, zIndex),
+				new Vector3(xIndex + 1, yIndex, zIndex + 1)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex - 1, yIndex, zIndex))
+		{
+			verts.AddRange(new Vector3[]{
+				new Vector3(xIndex, yIndex, zIndex + 1),
+				new Vector3(xIndex, yIndex + 1, zIndex + 1),
+				new Vector3(xIndex, yIndex + 1, zIndex),
+				new Vector3(xIndex, yIndex, zIndex)
+			});
+		}
+		
+		if (chunk.IsBlockEmpty(xIndex + 1, yIndex, zIndex))
+		{
+			verts.AddRange(new Vector3[]{
+				new Vector3(xIndex + 1, yIndex, zIndex),
+				new Vector3(xIndex + 1, yIndex + 1, zIndex),
+				new Vector3(xIndex + 1, yIndex + 1, zIndex + 1),
+				new Vector3(xIndex + 1, yIndex, zIndex + 1)
+			});
+		}
+		return verts;
+	}
+
+
 
 
 	// Some notes on other block types that would probably derive from this class:
@@ -90,4 +393,5 @@ public class Block
 	 * 
 	 * 
 	*/
+
 }
