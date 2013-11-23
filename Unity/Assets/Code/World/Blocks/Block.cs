@@ -1,21 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 public class Block
 {
-	// This is a block.
-	// Blocks are part of the terrain and always need to be within a Chunk.
-	// They have an int ID for each Unique block type. 0 is Empty Space. We'll have an enum for this somewhere.
-	// No two blocks can take up the same space. 
-	// No block can take up more than one space. 
-	// And remember. Everyblock equal, everyblock loved. 
-
-	// The ID identifier of the block.
-	int id;
-
 	// The chunk that this block belongs to.
-	BlockChunkScript chunk;
+	Chunk chunk;
 
 	// Placememnt of the block relative to it's chunk.
 	int xIndex;
@@ -28,6 +18,7 @@ public class Block
 	// This is for raycasting and other stuff.
 	int Layer;
 
+	public BlockType type { get; private set; }
 
 	// Is this block translucent?
 	bool occludes;
@@ -48,10 +39,9 @@ public class Block
 	// For now, everything is just a cube.
 
 	// Constructor function.
-	public Block(BlockChunkScript chunk, int blockID, int x, int y, int z)
+	public Block(Chunk chunk, int x, int y, int z)
 	{
 		this.chunk = chunk;
-		this.id = blockID;
 
 		this.xIndex = x;
 		this.yIndex = y;

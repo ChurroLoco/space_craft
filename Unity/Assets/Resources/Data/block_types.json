@@ -1,0 +1,22 @@
+{
+  "block_types": [
+    {
+      "id": 1,
+      "data_class": "Block",
+      "mesh_geometry": {
+        "vertices": [
+          
+        ],
+        "uv_one_coords": [
+          
+        ],
+        "normals": [
+          
+        ]
+      },
+      "name": "Stone",
+      "occludes_neighbors": true,
+      "texture_index": 0
+    }
+  ]
+}

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 [RequireComponent (typeof (MeshFilter))]
 [RequireComponent (typeof (MeshCollider))]
 [RequireComponent (typeof (MeshRenderer))]
-public class BlockChunkScript : MonoBehaviour
+public class Chunk : MonoBehaviour
 {	
 	public const int VERTS_PER_BLOCK = 24;
 	
@@ -33,7 +33,7 @@ public class BlockChunkScript : MonoBehaviour
 			{
 				for (int z = 0; z < DEPTH; z++)
 				{
-					blocks[x, y, z] = new Block(this, 1, x, y, z);
+					blocks[x, y, z] = new Block(this, x, y, z);
 				}
 			}
 		}
@@ -58,7 +58,7 @@ public class BlockChunkScript : MonoBehaviour
 
 					if (normalizedheight <= cutOff)
 					{
-						blocks[x, y, z] = new Block(this, 1, x, y, z);
+						blocks[x, y, z] = new Block(this, x, y, z);
 					}
 				}
 			}
@@ -75,7 +75,11 @@ public class BlockChunkScript : MonoBehaviour
 				{
 					if (Random.Range(0, 2) == 1)
 					{
-						blocks[x, y, z] = new Block(this, 1, x, y, z);
+						blocks[x, y, z] = new Block(this, x, y, z);
+					}
+					else
+					{
+						blocks[x, y, z] = null;
 					}
 				}
 			}
@@ -100,7 +104,6 @@ public class BlockChunkScript : MonoBehaviour
 		
 	public void GenerateGeometry()
 	{
-		Debug.Log("Blah blah blah");
 		List<Vector3> newChunkVertices = new List<Vector3>(WIDTH * HEIGHT * DEPTH);
 		List<Vector3> newChunkNormals = new List<Vector3>(WIDTH * HEIGHT * DEPTH);
 		List<Vector2> newChunkUVs = new List<Vector2>(WIDTH * HEIGHT * DEPTH);
@@ -157,12 +160,12 @@ public class BlockChunkScript : MonoBehaviour
 		Block block = TerrainControllerScript.getBlockAt(position);
 		if (blockId > 0 && block == null)
 		{
-			blocks[(int)position.x % BlockChunkScript.WIDTH, (int)position.y % BlockChunkScript.HEIGHT, (int)position.z % BlockChunkScript.DEPTH] = new Block(this, blockId,(int)position.x % BlockChunkScript.WIDTH, (int)position.y % BlockChunkScript.HEIGHT, (int)position.z % BlockChunkScript.DEPTH);
+			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = new Block(this, (int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH);
 			GenerateGeometry();
 		}
 		else if (blockId == 0 && block != null)
 		{
-			blocks[(int)position.x % BlockChunkScript.WIDTH, (int)position.y % BlockChunkScript.HEIGHT, (int)position.z % BlockChunkScript.DEPTH] = null;
+			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = null;
 			GenerateGeometry();
 		}
 	}

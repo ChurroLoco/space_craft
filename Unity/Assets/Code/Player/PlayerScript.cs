@@ -5,7 +5,7 @@ using System.Collections;
 public class PlayerScript : MonoBehaviour
 {
 	public CharacterController characterController;
-	public Camera camera;
+	public Camera playerCamera;
 	private float walkSpeed = 2.5f;
 	private float jumpSpeed = 5.0f;
 	private float turnSpeed = 190;
@@ -40,27 +40,27 @@ public class PlayerScript : MonoBehaviour
 		if (rightclick || leftClick)
 		{
 			Screen.lockCursor = true;
-			Ray ray = camera.ScreenPointToRay(Input.mousePosition);
+			Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
 			if (Physics.Raycast(ray, out hit) && hit.distance < 4)
 			{
 				// We hit something!
 				if (leftClick)
 				{
-					BlockChunkScript chunk = TerrainControllerScript.getChunkAt(hit.point);
+					Chunk chunk = TerrainControllerScript.getChunkAt(hit.point);
 					if (chunk != null)
 					{
 						// Delete the block directly in front of the hit point.
-						chunk.setBlock(hit.point + camera.transform.forward, 0);
+						chunk.setBlock(hit.point + playerCamera.transform.forward, 0);
 					}
 				}
 				else if (rightclick && hit.distance >= 0.5f)
 				{
-					BlockChunkScript chunk = TerrainControllerScript.getChunkAt(hit.point);
+					Chunk chunk = TerrainControllerScript.getChunkAt(hit.point);
 					if (chunk != null)
 					{
 						// Create a block directly behind the hit point.
-						chunk.setBlock(hit.point - camera.transform.forward, 1);
+						chunk.setBlock(hit.point - playerCamera.transform.forward, 1);
 					}
 				}
 			}
@@ -69,7 +69,7 @@ public class PlayerScript : MonoBehaviour
 		if (Screen.lockCursor)
 		{
 			transform.RotateAround(transform.position, Vector3.up, Input.GetAxis("Mouse X") * turnSpeed * Time.deltaTime);
-			camera.transform.RotateAround(camera.transform.position, camera.transform.right, -Input.GetAxis("Mouse Y") * turnSpeed * Time.deltaTime);
+			playerCamera.transform.RotateAround(playerCamera.transform.position, playerCamera.transform.right, -Input.GetAxis("Mouse Y") * turnSpeed * Time.deltaTime);
 		}
 		
 		if (characterController.isGrounded)
