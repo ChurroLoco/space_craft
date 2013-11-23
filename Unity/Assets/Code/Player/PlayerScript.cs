@@ -31,7 +31,6 @@ public class PlayerScript : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{	
-
 		Vector3 movement = Vector3.zero;
 		movement = transform.forward * Input.GetAxis("Vertical") * walkSpeed;
 		movement += transform.right * Input.GetAxis("Horizontal") * walkSpeed;
@@ -40,9 +39,10 @@ public class PlayerScript : MonoBehaviour
 		bool rightclick = Input.GetMouseButtonDown(1);
 		if (rightclick || leftClick)
 		{
+			Screen.lockCursor = true;
 			Ray ray = camera.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
-			if (Physics.Raycast(ray, out hit) && hit.distance < 4 && hit.distance > 0)
+			if (Physics.Raycast(ray, out hit) && hit.distance < 4)
 			{
 				// We hit something!
 				if (leftClick)
@@ -54,7 +54,7 @@ public class PlayerScript : MonoBehaviour
 						chunk.setBlock(hit.point + camera.transform.forward, 0);
 					}
 				}
-				else if (rightclick)
+				else if (rightclick && hit.distance >= 0.5f)
 				{
 					BlockChunkScript chunk = TerrainControllerScript.getChunkAt(hit.point);
 					if (chunk != null)
