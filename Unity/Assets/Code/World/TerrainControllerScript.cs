@@ -11,7 +11,7 @@ public class TerrainControllerScript : MonoBehaviour
 
 	public const string CHUNK_PREFAB_PATH = "Prefabs/Chunk";
 	
-	private BlockChunkScript[,,] chunks = new BlockChunkScript[WIDTH, HEIGHT, DEPTH];
+	private static BlockChunkScript[,,] chunks = new BlockChunkScript[WIDTH, HEIGHT, DEPTH];
 	
 	void Start()
 	{
@@ -55,7 +55,7 @@ public class TerrainControllerScript : MonoBehaviour
 		}
 	}
 
-	Block getBlockAt(Vector3 position)
+	public static Block getBlockAt(Vector3 position)
 	{
 		if (position.x < 0 || position.x > WIDTH * BlockChunkScript.WIDTH ||
 		    position.y < 0 || position.y > HEIGHT * BlockChunkScript.HEIGHT ||
@@ -65,7 +65,7 @@ public class TerrainControllerScript : MonoBehaviour
 			return null;
 		}
 		// Get the chunk.
-		BlockChunkScript chunk = chunks[(int)(position.x / WIDTH),(int)(position.y / HEIGHT),(int)(position.z / DEPTH)];
+		BlockChunkScript chunk = chunks[(int)(position.x / BlockChunkScript.WIDTH),(int)(position.y / BlockChunkScript.HEIGHT),(int)(position.z / BlockChunkScript.DEPTH)];
 		// Get the block within the chunk.
 		return chunk.blocks[(int)position.x % BlockChunkScript.WIDTH, (int)position.y % BlockChunkScript.HEIGHT, (int)position.z % BlockChunkScript.DEPTH];
 	}

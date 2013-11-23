@@ -71,6 +71,8 @@ public class Block
 		// Do any finishing up of stuff. 
 		// Drop anything that this drops. 
 		// Destroy the block.
+		chunk.blocks[xIndex,yIndex,zIndex] = null;
+		chunk.GenerateGeometry();
 	}
 
 	// Returns the triangle indices for a face. 

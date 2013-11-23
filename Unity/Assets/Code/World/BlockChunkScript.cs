@@ -98,7 +98,7 @@ public class BlockChunkScript : MonoBehaviour
 				blocks[x, y, z] != null);
 	}
 		
-	private void GenerateGeometry()
+	public void GenerateGeometry()
 	{
 		Debug.Log("Blah blah blah");
 		List<Vector3> newChunkVertices = new List<Vector3>(WIDTH * HEIGHT * DEPTH);
@@ -151,5 +151,5 @@ public class BlockChunkScript : MonoBehaviour
 			Debug.LogError("'meshCollider' is null.");
 		}
 	}
-	
+
 }

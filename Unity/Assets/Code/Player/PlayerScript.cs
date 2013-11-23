@@ -35,7 +35,22 @@ public class PlayerScript : MonoBehaviour
 		Vector3 movement = Vector3.zero;
 		movement = transform.forward * Input.GetAxis("Vertical") * walkSpeed;
 		movement += transform.right * Input.GetAxis("Horizontal") * walkSpeed;
-		
+
+		if (Input.GetMouseButton(0))
+		{
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			RaycastHit hit;
+			if (Physics.Raycast(ray, out hit) && hit.distance < 4)
+			{
+				// We hit something!
+				Block block = TerrainControllerScript.getBlockAt(hit.point);
+				if (block != null)
+				{
+					block.destroy(0);
+				}
+			}
+		}
+
 		if (Screen.lockCursor)
 		{
 			transform.RotateAround(transform.position, Vector3.up, Input.GetAxis("Mouse X") * turnSpeed * Time.deltaTime);
@@ -57,6 +72,7 @@ public class PlayerScript : MonoBehaviour
 		
 		movement.y = verticalSpeed;
 		characterController.Move(movement * Time.deltaTime);
+
 
 	}
 
