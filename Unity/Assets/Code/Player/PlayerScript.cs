@@ -36,17 +36,32 @@ public class PlayerScript : MonoBehaviour
 		movement = transform.forward * Input.GetAxis("Vertical") * walkSpeed;
 		movement += transform.right * Input.GetAxis("Horizontal") * walkSpeed;
 
-		if (Input.GetMouseButton(0))
+		bool leftClick = Input.GetMouseButtonDown(0);
+		bool rightclick = Input.GetMouseButtonDown(1);
+		if (rightclick || leftClick)
 		{
-			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			Ray ray = camera.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
-			if (Physics.Raycast(ray, out hit) && hit.distance < 4)
+			if (Physics.Raycast(ray, out hit) && hit.distance < 4 && hit.distance > 0)
 			{
 				// We hit something!
-				Block block = TerrainControllerScript.getBlockAt(hit.point);
-				if (block != null)
+				if (leftClick)
 				{
-					block.destroy(0);
+					BlockChunkScript chunk = TerrainControllerScript.getChunkAt(hit.point);
+					if (chunk != null)
+					{
+						// Delete the block directly in front of the hit point.
+						chunk.setBlock(hit.point + camera.transform.forward, 0);
+					}
+				}
+				else if (rightclick)
+				{
+					BlockChunkScript chunk = TerrainControllerScript.getChunkAt(hit.point);
+					if (chunk != null)
+					{
+						// Create a block directly behind the hit point.
+						chunk.setBlock(hit.point - camera.transform.forward, 1);
+					}
 				}
 			}
 		}

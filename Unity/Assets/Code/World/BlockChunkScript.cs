@@ -152,4 +152,18 @@ public class BlockChunkScript : MonoBehaviour
 		}
 	}
 
+	public void setBlock(Vector3 position, int blockId)
+	{
+		Block block = TerrainControllerScript.getBlockAt(position);
+		if (blockId > 0 && block == null)
+		{
+			blocks[(int)position.x % BlockChunkScript.WIDTH, (int)position.y % BlockChunkScript.HEIGHT, (int)position.z % BlockChunkScript.DEPTH] = new Block(this, blockId,(int)position.x % BlockChunkScript.WIDTH, (int)position.y % BlockChunkScript.HEIGHT, (int)position.z % BlockChunkScript.DEPTH);
+			GenerateGeometry();
+		}
+		else if (blockId == 0 && block != null)
+		{
+			blocks[(int)position.x % BlockChunkScript.WIDTH, (int)position.y % BlockChunkScript.HEIGHT, (int)position.z % BlockChunkScript.DEPTH] = null;
+			GenerateGeometry();
+		}
+	}
 }
