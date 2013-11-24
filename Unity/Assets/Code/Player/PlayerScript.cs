@@ -12,6 +12,9 @@ public class PlayerScript : MonoBehaviour
 	public bool isGrounded;
 	public float verticalSpeed = 0;
 
+	[SerializeField]
+	private int selectedBlockTypeId = 1;
+
 	public static PlayerScript Spawn(Vector3 position)
 	{
 		GameObject player = Instantiate(Resources.Load("Prefabs/Player")) as GameObject;
@@ -34,6 +37,26 @@ public class PlayerScript : MonoBehaviour
 		Vector3 movement = Vector3.zero;
 		movement = transform.forward * Input.GetAxis("Vertical") * walkSpeed;
 		movement += transform.right * Input.GetAxis("Horizontal") * walkSpeed;
+
+		if (Input.GetKeyDown(KeyCode.E))
+		{
+			selectedBlockTypeId++;
+			selectedBlockTypeId = Mathf.Clamp(selectedBlockTypeId, 1, BlockType.All.Count);
+		}
+
+		if (Input.GetKeyDown(KeyCode.Q))
+		{
+			selectedBlockTypeId--;
+			selectedBlockTypeId = Mathf.Clamp(selectedBlockTypeId, 1, BlockType.All.Count);
+		}
+
+		if (Input.GetKeyDown(KeyCode.F))
+		{
+			GameObject flare = Instantiate(Resources.Load("Prefabs/Projectiles/Flare")) as GameObject;
+			flare.transform.position = transform.position + transform.forward;
+			flare.rigidbody.AddRelativeTorque(Vector3.right * 3);
+			flare.rigidbody.AddForce((transform.forward * 20) + (Vector3.up * 8));
+		}
 
 		bool leftClick = Input.GetMouseButtonDown(0);
 		bool rightclick = Input.GetMouseButtonDown(1);
@@ -74,7 +97,7 @@ public class PlayerScript : MonoBehaviour
 					if (chunk != null)
 					{
 						// Create a block directly behind the hit point.
-						chunk.SetBlock(alteredHitPoint, 2);
+						chunk.SetBlock(alteredHitPoint, selectedBlockTypeId);
 					}
 				}
 			}
@@ -105,7 +128,9 @@ public class PlayerScript : MonoBehaviour
 
 	void OnGUI()
 	{
-		GUILayout.Label(transform.position.ToString());
+		GUILayout.Label(string.Format("World Position: {0}", transform.position.ToString()));
+		GUILayout.Label(string.Format("Selected Block Type: {0}", BlockType.All[selectedBlockTypeId].Name));
+
 	}
 }
 

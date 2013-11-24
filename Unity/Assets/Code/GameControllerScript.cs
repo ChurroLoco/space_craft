@@ -10,12 +10,12 @@ public class GameControllerScript : MonoBehaviour
 	{
 		BlockType.InitializeFromFile();
 		Debug.Log(string.Format("BlockTypes imported count: '{0}'.", BlockType.All.Count));
-		Invoke("SpawnPlayer", 5);
+		Invoke("SpawnPlayer", 3);
 	}
 
 	void SpawnPlayer()
 	{
-		PlayerScript.Spawn(new Vector3(0, (TerrainControllerScript.HEIGHT * Chunk.HEIGHT) + 150, 0));
+		PlayerScript.Spawn(new Vector3(0, (TerrainControllerScript.HEIGHT * Chunk.HEIGHT) + 50, 0));
 	}
 	
 	void OnApplicationFocus(bool focusStatus) 
