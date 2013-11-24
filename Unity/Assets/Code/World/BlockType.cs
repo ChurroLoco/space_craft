@@ -22,6 +22,7 @@ public class BlockType
 	}
 
 	// Let's keep them alphabetical since the list could get long.
+	public bool Breakable { get; private set; }
 	public string DataClass { get; private set; }
 	public int Id { get; private set; }
 	public string Name { get; private set; }
@@ -66,6 +67,7 @@ public class BlockType
 				BlockType newType = new BlockType();
 
 				// Parse these in alphabetical order also please.
+				newType.Breakable = type["breakable"].AsBool;
 				newType.DataClass = type["data_class"].Value;
 				newType.Id = type["id"].AsInt;
 				newType.Name = type["name"].Value;

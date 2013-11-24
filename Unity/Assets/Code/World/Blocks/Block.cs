@@ -20,27 +20,13 @@ public class Block
 
 	public BlockType type { get; private set; }
 
-	// Is this block translucent?
-	bool occludes;
-
-	// Do we include this block's geometry in the physics mesh of it's chunk?
-	bool isPhysical;
-
-	// Do we include this block's geometry in the visual mesh of it's chunk?
-	bool isVisible;
-
-	// Time in seconds it takes to punch the block to death.
-	int health;
-
-	// Is this block breakable by normal means?
-	bool isBreakable;
-
 	// Eventually we'll probably want a way for each block to return their own geometry, by face if possible. 
 	// For now, everything is just a cube.
 
 	// Constructor function.
-	public Block(Chunk chunk, int x, int y, int z)
+	public Block(BlockType type, Chunk chunk, int x, int y, int z)
 	{
+		this.type = type;
 		this.chunk = chunk;
 
 		this.xIndex = x;
@@ -69,8 +55,9 @@ public class Block
 	public virtual List<int> getIndices(int startIndex)
 	{
 		List <int> indices = new List<int>();
-
-		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex - 1))
+		Block neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex, zIndex - 1);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			indices.AddRange(new int[6]{
 				startIndex,
@@ -83,7 +70,9 @@ public class Block
 			startIndex += 4;
 		}
 
-		if (chunk.IsBlockEmpty(xIndex, yIndex + 1, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex + 1, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			indices.AddRange(new int[6]{
 				startIndex,
@@ -96,33 +85,9 @@ public class Block
 			startIndex += 4;
 		}
 
-		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex + 1))
-		{
-			indices.AddRange(new int[6]{
-				startIndex,
-				startIndex + 1,
-				startIndex + 2,
-				startIndex,
-				startIndex + 2,
-				startIndex + 3
-			});
-			startIndex += 4;
-		}
-		 
-		if (chunk.IsBlockEmpty(xIndex, yIndex - 1, zIndex))
-		{
-			indices.AddRange(new int[6]{
-				startIndex,
-				startIndex + 1,
-				startIndex + 2,
-				startIndex,
-				startIndex + 2,
-				startIndex + 3
-			});
-			startIndex += 4;
-		}
-
-		if (chunk.IsBlockEmpty(xIndex - 1, yIndex, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex, zIndex + 1);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			indices.AddRange(new int[6]{
 				startIndex,
@@ -135,7 +100,39 @@ public class Block
 			startIndex += 4;
 		}
 
-		if (chunk.IsBlockEmpty(xIndex + 1, yIndex, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex - 1, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
+		{
+			indices.AddRange(new int[6]{
+				startIndex,
+				startIndex + 1,
+				startIndex + 2,
+				startIndex,
+				startIndex + 2,
+				startIndex + 3
+			});
+			startIndex += 4;
+		}
+
+		neighborBlock = chunk.GetBlockAtIndex(xIndex - 1, yIndex, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
+		{
+			indices.AddRange(new int[6]{
+				startIndex,
+				startIndex + 1,
+				startIndex + 2,
+				startIndex,
+				startIndex + 2,
+				startIndex + 3
+			});
+			startIndex += 4;
+		}
+
+		neighborBlock = chunk.GetBlockAtIndex(xIndex + 1, yIndex, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			indices.AddRange(new int[6]{
 				startIndex,
@@ -154,63 +151,75 @@ public class Block
 	{
 		List<Vector2> uvs = new List<Vector2>();
 
-		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex - 1))
+		Block neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex, zIndex - 1);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			uvs.AddRange(new Vector2[]{
-				new Vector2(0, 0),
-				new Vector2(0, 1),
-				new Vector2(1, 1),
-				new Vector3(1, 0)
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 0)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(1, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector3(1, 0))
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex + 1, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex + 1, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			uvs.AddRange(new Vector2[]{
-				new Vector2(0, 0),
-				new Vector2(0, 1),
-				new Vector2(1, 1),
-				new Vector3(1, 0)
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 0)),
+		        TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 1)),
+		        TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(1, 1)),
+		        TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector3(1, 0))
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex + 1))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex, zIndex + 1);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			uvs.AddRange(new Vector2[]{
-				new Vector2(0, 0),
-				new Vector2(0, 1),
-				new Vector2(1, 1),
-				new Vector3(1, 0)
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 0)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(1, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector3(1, 0))
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex - 1, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex -1, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			uvs.AddRange(new Vector2[]{
-				new Vector2(0, 0),
-				new Vector2(0, 1),
-				new Vector2(1, 1),
-				new Vector3(1, 0)
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 0)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(1, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector3(1, 0))
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex - 1, yIndex, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex - 1, yIndex, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			uvs.AddRange(new Vector2[]{
-				new Vector2(0, 0),
-				new Vector2(0, 1),
-				new Vector2(1, 1),
-				new Vector3(1, 0)
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 0)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(1, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector3(1, 0))
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex + 1, yIndex, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex + 1, yIndex, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			uvs.AddRange(new Vector2[]{
-				new Vector2(0, 0),
-				new Vector2(0, 1),
-				new Vector2(1, 1),
-				new Vector3(1, 0)
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 0)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(0, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector2(1, 1)),
+				TerrainAtlas.UVCordFromIndex(this.type.TextureIndex, new Vector3(1, 0))
 			});
 		}
 		return uvs;
@@ -221,7 +230,9 @@ public class Block
 	{
 		List<Vector3> normals = new List<Vector3>();
 
-		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex - 1))
+		Block neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex, zIndex - 1);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			normals.AddRange(new Vector3[]{
 				Vector3.back, 
@@ -231,7 +242,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex + 1, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex + 1, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			normals.AddRange(new Vector3[]{
 				Vector3.up, 
@@ -241,7 +254,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex + 1))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex, zIndex + 1);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			normals.AddRange(new Vector3[]{
 				Vector3.forward, 
@@ -251,7 +266,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex - 1, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex - 1, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			normals.AddRange(new Vector3[]{
 				Vector3.down, 
@@ -261,7 +278,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex - 1, yIndex, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex - 1, yIndex, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			normals.AddRange(new Vector3[]{
 				Vector3.left, 
@@ -271,7 +290,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex + 1, yIndex, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex + 1, yIndex, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			normals.AddRange(new Vector3[]{
 				Vector3.right, 
@@ -287,7 +308,9 @@ public class Block
 	public virtual List<Vector3> getVerts()
 	{
 		List<Vector3> verts = new List<Vector3>();
-		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex - 1))
+		Block neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex, zIndex - 1);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			verts.AddRange(new Vector3[]{
 				new Vector3(xIndex, yIndex, zIndex),
@@ -297,7 +320,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex + 1, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex + 1, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			verts.AddRange(new Vector3[]{
 				new Vector3(xIndex, yIndex + 1, zIndex),
@@ -307,7 +332,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex, zIndex + 1))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex, zIndex + 1);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			verts.AddRange(new Vector3[]{
 				new Vector3(xIndex + 1, yIndex, zIndex + 1),
@@ -317,7 +344,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex, yIndex - 1, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex, yIndex - 1, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			verts.AddRange(new Vector3[]{
 				new Vector3(xIndex, yIndex, zIndex + 1),
@@ -327,7 +356,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex - 1, yIndex, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex - 1, yIndex, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			verts.AddRange(new Vector3[]{
 				new Vector3(xIndex, yIndex, zIndex + 1),
@@ -337,7 +368,9 @@ public class Block
 			});
 		}
 		
-		if (chunk.IsBlockEmpty(xIndex + 1, yIndex, zIndex))
+		neighborBlock = chunk.GetBlockAtIndex(xIndex + 1, yIndex, zIndex);
+		if (neighborBlock == null ||
+		    neighborBlock.type.OccludesNeighbors == false)
 		{
 			verts.AddRange(new Vector3[]{
 				new Vector3(xIndex + 1, yIndex, zIndex),

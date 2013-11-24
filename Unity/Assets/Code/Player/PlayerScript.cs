@@ -42,25 +42,39 @@ public class PlayerScript : MonoBehaviour
 			Screen.lockCursor = true;
 			Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
-			if (Physics.Raycast(ray, out hit) && hit.distance < 4)
+			if (Physics.Raycast(ray, out hit, 4.0f))
 			{
+
 				// We hit something!
 				if (leftClick)
 				{
-					Chunk chunk = TerrainControllerScript.getChunkAt(hit.point);
+					Vector3 alteredHitPoint = hit.point + (ray.direction * 0.001f);
+					Debug.Log(string.Format("AlteredHitPoint {0}", alteredHitPoint));
+
+					Chunk chunk = TerrainControllerScript.getChunkAt(alteredHitPoint);
 					if (chunk != null)
 					{
 						// Delete the block directly in front of the hit point.
-						chunk.setBlock(hit.point + playerCamera.transform.forward, 0);
+						Block clickedBlock = TerrainControllerScript.getBlockAt(alteredHitPoint);
+						if (clickedBlock.type.Breakable)
+						{
+							// TODO Move this to block logic and not chunk logic.
+							chunk.SetBlock(alteredHitPoint, 0);
+							GameObject particles = Instantiate(Resources.Load("Prefabs/Particles/Small Dust Burst")) as GameObject;
+							particles.transform.position = hit.point;
+						}
 					}
 				}
-				else if (rightclick && hit.distance >= 0.5f)
+				else if (rightclick)
 				{
-					Chunk chunk = TerrainControllerScript.getChunkAt(hit.point);
+					Vector3 alteredHitPoint = hit.point - (ray.direction * 0.001f);
+					Debug.Log(string.Format("AlteredHitPoint {0}", alteredHitPoint));
+
+					Chunk chunk = TerrainControllerScript.getChunkAt(alteredHitPoint);
 					if (chunk != null)
 					{
 						// Create a block directly behind the hit point.
-						chunk.setBlock(hit.point - playerCamera.transform.forward, 1);
+						chunk.SetBlock(alteredHitPoint, 2);
 					}
 				}
 			}
@@ -87,8 +101,6 @@ public class PlayerScript : MonoBehaviour
 		
 		movement.y = verticalSpeed;
 		characterController.Move(movement * Time.deltaTime);
-
-
 	}
 
 	void OnGUI()

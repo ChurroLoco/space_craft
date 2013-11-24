@@ -15,10 +15,7 @@ public class TerrainControllerScript : MonoBehaviour
 	
 	void Start()
 	{
-		//Instantiate(Resources.Load("Prefabs/Chunk"));
 		StartCoroutine("GenerateWorld");
-
-
 	}
 	
 	public IEnumerator GenerateWorld()
@@ -55,9 +52,9 @@ public class TerrainControllerScript : MonoBehaviour
 
 	public static Chunk getChunkAt(Vector3 position)
 	{
-		if (position.x < 0 || position.x > WIDTH * Chunk.WIDTH ||
-		    position.y < 0 || position.y > HEIGHT * Chunk.HEIGHT ||
-		    position.z < 0 || position.z > DEPTH * Chunk.DEPTH)
+		if (position.x < 0 || position.x >= WIDTH * Chunk.WIDTH ||
+		    position.y < 0 || position.y >= HEIGHT * Chunk.HEIGHT ||
+		    position.z < 0 || position.z >= DEPTH * Chunk.DEPTH)
 		{
 			// We're off the map.
 			return null;
@@ -68,17 +65,15 @@ public class TerrainControllerScript : MonoBehaviour
 
 	public static Block getBlockAt(Vector3 position)
 	{
-		if (position.x < 0 || position.x > WIDTH * Chunk.WIDTH ||
-		    position.y < 0 || position.y > HEIGHT * Chunk.HEIGHT ||
-		    position.z < 0 || position.z > DEPTH * Chunk.DEPTH)
-		{
-			// We're off the map.
-			return null;
-		}
+		Block result = null;
 		// Get the chunk.
-		Chunk chunk = chunks[(int)(position.x / Chunk.WIDTH),(int)(position.y / Chunk.HEIGHT),(int)(position.z / Chunk.DEPTH)];
-		// Get the block within the chunk.
-		return chunk.blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH];
+		Chunk chunk = getChunkAt(position);
+		if (chunk != null)
+		{
+			result = chunk.blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH];
+		}
+
+		return result;
 	}
 
 }

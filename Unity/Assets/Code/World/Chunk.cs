@@ -24,6 +24,20 @@ public class Chunk : MonoBehaviour
 		SinBlock(0.3f, 0.6f, 0.7f, 0.3f);
 		GenerateGeometry();
 	}
+
+	public Block GetBlockAtIndex(int x, int y, int z)
+	{
+		if (x < 0 || x >= WIDTH ||
+		    y < 0 || y >= HEIGHT ||
+		    z < 0 || z >= DEPTH)
+		{
+			return null;
+		}
+		else
+		{
+			return blocks[x, y, z];
+		}
+	}
 	
 	private void FillBlocks()
 	{
@@ -33,7 +47,7 @@ public class Chunk : MonoBehaviour
 			{
 				for (int z = 0; z < DEPTH; z++)
 				{
-					blocks[x, y, z] = new Block(this, x, y, z);
+					blocks[x, y, z] = new Block(BlockType.All[1], this, x, y, z);
 				}
 			}
 		}
@@ -58,7 +72,7 @@ public class Chunk : MonoBehaviour
 
 					if (normalizedheight <= cutOff)
 					{
-						blocks[x, y, z] = new Block(this, x, y, z);
+						blocks[x, y, z] = new Block(BlockType.All[1], this, x, y, z);
 					}
 				}
 			}
@@ -75,7 +89,7 @@ public class Chunk : MonoBehaviour
 				{
 					if (Random.Range(0, 2) == 1)
 					{
-						blocks[x, y, z] = new Block(this, x, y, z);
+						blocks[x, y, z] = new Block(BlockType.All[1], this, x, y, z);
 					}
 					else
 					{
@@ -155,15 +169,15 @@ public class Chunk : MonoBehaviour
 		}
 	}
 
-	public void setBlock(Vector3 position, int blockId)
+	public void SetBlock(Vector3 position, int typeId)
 	{
 		Block block = TerrainControllerScript.getBlockAt(position);
-		if (blockId > 0 && block == null)
+		if (typeId > 0 && block == null)
 		{
-			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = new Block(this, (int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH);
+			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = new Block(BlockType.All[typeId], this, (int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH);
 			GenerateGeometry();
 		}
-		else if (blockId == 0 && block != null)
+		else if (typeId == 0 && block != null)
 		{
 			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = null;
 			GenerateGeometry();

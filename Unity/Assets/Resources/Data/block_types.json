@@ -14,9 +14,29 @@
           
         ]
       },
-      "name": "Stone",
+      "name": "Planet Core",
       "occludes_neighbors": true,
-      "texture_index": 0
+      "texture_index": 2,
+      "breakable": false
+    },
+    {
+      "id": 2,
+      "data_class": "Block",
+      "mesh_geometry": {
+        "vertices": [
+          
+        ],
+        "uv_one_coords": [
+          
+        ],
+        "normals": [
+          
+        ]
+      },
+      "name": "Moon Stone",
+      "occludes_neighbors": true,
+      "texture_index":0,
+      "breakable": true
     }
   ]
 }
