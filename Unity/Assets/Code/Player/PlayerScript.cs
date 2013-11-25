@@ -12,6 +12,8 @@ public class PlayerScript : MonoBehaviour
 	public bool isGrounded;
 	public float verticalSpeed = 0;
 
+	private Chuck onChuck = null;
+
 	[SerializeField]
 	private int selectedBlockTypeId = 1;
 
@@ -74,15 +76,19 @@ public class PlayerScript : MonoBehaviour
 					Vector3 alteredHitPoint = hit.point + (ray.direction * 0.001f);
 					Debug.Log(string.Format("AlteredHitPoint {0}", alteredHitPoint));
 
-					Chunk chunk = TerrainControllerScript.GetChunkAt(alteredHitPoint);
+					if (onChuck == null)
+					{
+						onChuck = TerrainControllerScript.getChuckAt(transform.position);
+					}
+					Chunk chunk = TerrainControllerScript.GetChunkAt(alteredHitPoint, onChuck);
 					if (chunk != null)
 					{
 						// Delete the block directly in front of the hit point.
-						Block clickedBlock = TerrainControllerScript.GetBlockAt(alteredHitPoint);
+						Block clickedBlock = TerrainControllerScript.GetBlockAt(alteredHitPoint, onChuck);
 						if (clickedBlock.type.Breakable)
 						{
 							// TODO Move this to block logic and not chunk logic.
-							chunk.SetBlock(alteredHitPoint, 0);
+							chunk.SetBlock(alteredHitPoint, 0, onChuck);
 							GameObject particles = Instantiate(Resources.Load("Prefabs/Particles/Small Dust Burst")) as GameObject;
 							particles.transform.position = hit.point;
 						}
@@ -93,11 +99,11 @@ public class PlayerScript : MonoBehaviour
 					Vector3 alteredHitPoint = hit.point - (ray.direction * 0.001f);
 					Debug.Log(string.Format("AlteredHitPoint {0}", alteredHitPoint));
 
-					Chunk chunk = TerrainControllerScript.GetChunkAt(alteredHitPoint);
+					Chunk chunk = TerrainControllerScript.GetChunkAt(alteredHitPoint, onChuck);
 					if (chunk != null)
 					{
 						// Create a block directly behind the hit point.
-						chunk.SetBlock(alteredHitPoint, selectedBlockTypeId);
+						chunk.SetBlock(alteredHitPoint, selectedBlockTypeId, onChuck);
 					}
 				}
 			}

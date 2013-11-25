@@ -20,9 +20,6 @@ public class Block
 
 	public BlockType type { get; private set; }
 
-	// Eventually we'll probably want a way for each block to return their own geometry, by face if possible. 
-	// For now, everything is just a cube.
-
 	// Constructor function.
 	public Block(BlockType type, Chunk chunk, int x, int y, int z)
 	{
@@ -40,15 +37,6 @@ public class Block
 	private void clone()
 	{
 
-	}
-
-	public void destroy(int toolID)
-	{
-		// Do any finishing up of stuff. 
-		// Drop anything that this drops. 
-		// Destroy the block.
-		chunk.blocks[xIndex,yIndex,zIndex] = null;
-		chunk.GenerateGeometry();
 	}
 
 	// Returns the triangle indices for a face. 

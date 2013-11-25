@@ -16,12 +16,16 @@ public class Chunk : MonoBehaviour
 	public long id;
 	public MeshCollider meshCollider;
 	public MeshFilter meshFilter;
+
+	public Chuck chuck;
 	
 	public Block[,,] blocks = new Block[WIDTH, HEIGHT, DEPTH];
 		
-	void Start ()
+	public void init(Chuck chuck)
 	{	
+		this.chuck = chuck;
 		SinBlock(0.3f, 0.6f, 0.7f, 0.3f);
+		//FillBlocks();
 		GenerateGeometry();
 	}
 
@@ -169,9 +173,9 @@ public class Chunk : MonoBehaviour
 		}
 	}
 
-	public void SetBlock(Vector3 position, int typeId)
+	public void SetBlock(Vector3 position, int typeId, Chuck chuck)
 	{
-		Block block = TerrainControllerScript.GetBlockAt(position);
+		Block block = TerrainControllerScript.GetBlockAt(position, chuck);
 		if (typeId > 0 && block == null)
 		{
 			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = new Block(BlockType.All[typeId], this, (int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH);

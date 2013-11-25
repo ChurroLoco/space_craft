@@ -1,75 +1,105 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class TerrainControllerScript : MonoBehaviour
 {
-	public const int WIDTH = 4;
-	public const int HEIGHT = 2;
-	public const int DEPTH = 4;
+	public const int WIDTH = 2;
+	public const int HEIGHT = 1;
+	public const int DEPTH = 2;
 
 	public const int TERRAIN_HEIGHT = HEIGHT * Chunk.HEIGHT;	
 
-	public const string CHUNK_PREFAB_PATH = "Prefabs/Chunk";
+	public const string CHUCK_PREFAB_PATH = "Prefabs/Chuck";
 	
-	private static Chunk[,,] chunks = new Chunk[WIDTH, HEIGHT, DEPTH];
-	
+	private static List<Chuck> loadedChucks = new List<Chuck>();
+
 	void Start()
 	{
-		StartCoroutine("GenerateWorld");
+		//StartCoroutine("GenerateWorld");
+		LoadChuck(0,0,0);
 	}
 	
-	public IEnumerator GenerateWorld()
-	{
-		Object resource = Resources.Load(CHUNK_PREFAB_PATH);
+	//public IEnumerator GenerateWorld()
+	//{
 		
-		for (int y = HEIGHT - 1; y >= 0; y--)
+	//}
+
+	private void LoadChuck(int x, int y, int z)
+	{
+		Object resource = Resources.Load(CHUCK_PREFAB_PATH);
+		if (resource != null)
 		{
-			for (int z = 0; z < DEPTH; z++)
+			GameObject chuckObject = Instantiate(resource) as GameObject;
+			if (chuckObject != null)
 			{
-				for (int x = 0; x < WIDTH; x++)
-				{
-					if (resource != null)
-					{
-						GameObject chunkObject = Instantiate(resource) as GameObject;
-						if (chunkObject != null)
-						{
-							chunkObject.transform.position = new Vector3(x * Chunk.WIDTH, y * Chunk.HEIGHT, z * Chunk.DEPTH);
-							chunkObject.name = string.Format("Chunk [{0},{1},{2}]", x, y, z);
-							chunkObject.transform.parent = this.transform;
-							Chunk chunkScript = chunkObject.GetComponent<Chunk>();
-							chunks[x, y, z] = chunkScript;
-						}
-					}
-					else
-					{
-						Debug.LogError(string.Format("Chunk prefab could not be loaded from '{0}'", CHUNK_PREFAB_PATH));	
-					}
-					yield return new WaitForSeconds(0.2f);
-				}
+				chuckObject.transform.position = new Vector3(x * Chuck.WIDTH * Chunk.WIDTH, y * Chuck.HEIGHT * Chunk.HEIGHT, z * Chuck.DEPTH * Chunk.DEPTH);
+				chuckObject.name = string.Format("Chuck [{0},{1},{2}]", x, y, z);
+				chuckObject.transform.parent = this.transform;
+				Chuck chuckScript = chuckObject.GetComponent<Chuck>();
+				loadedChucks.Add(chuckScript);
+				chuckScript.init(x,y,z);
+			}
+			else
+			{
+				Debug.LogError(string.Format("Chuck prefab could not be loaded from '{0}'", CHUCK_PREFAB_PATH));	
 			}
 		}
 	}
 
-	public static Chunk GetChunkAt(Vector3 position)
+
+	public static Chuck getChuckAt(Vector3 position)
 	{
-		if (position.x < 0 || position.x >= WIDTH * Chunk.WIDTH ||
-		    position.y < 0 || position.y >= HEIGHT * Chunk.HEIGHT ||
-		    position.z < 0 || position.z >= DEPTH * Chunk.DEPTH)
+		Chuck result = null;
+		foreach (Chuck chuck in loadedChucks)
 		{
-			// We're off the map.
+			if (chuck.xIndex == (int)(position.x / (Chuck.WIDTH * Chunk.WIDTH)) &&
+			    chuck.yIndex == (int)(position.y / (Chuck.HEIGHT * Chunk.HEIGHT)) &&
+			    chuck.zIndex ==  (int)(position.z / (Chuck.DEPTH * Chunk.DEPTH)))
+			{
+				result = chuck;
+				break;
+			}
+		}
+		Debug.Log(result);
+		return result;
+	}
+
+	private static Vector3 PositionRelativeToChuck(Vector3 position, Chuck chuck)
+	{
+		return new Vector3(
+			position.x - (chuck.xIndex * Chuck.WIDTH * Chunk.WIDTH),
+			position.y - (chuck.yIndex * Chuck.HEIGHT * Chunk.HEIGHT),
+			position.z - (chuck.zIndex * Chuck.DEPTH * Chunk.DEPTH));
+	}
+
+	public static Chunk GetChunkAt(Vector3 position, Chuck chuck)
+	{
+		if (chuck == null)
+		{
+			return null;
+		}
+		Vector3 relativePosition = PositionRelativeToChuck(position, chuck);
+
+		if (relativePosition.x < 0 || relativePosition.x >= Chuck.WIDTH * Chunk.WIDTH ||
+			    relativePosition.y < 0 || relativePosition.y >= Chuck.HEIGHT * Chunk.HEIGHT ||
+			    relativePosition.z < 0 || relativePosition.z >= Chuck.DEPTH * Chunk.DEPTH)
+		{
+			// Asking for a position on the wrong Chunk. Return null. 
 			return null;
 		}
 		// Get the chunk.
-		return chunks[(int)(position.x / Chunk.WIDTH),(int)(position.y / Chunk.HEIGHT),(int)(position.z / Chunk.DEPTH)];
+		return chuck.chunks[(int)(relativePosition.x / Chunk.WIDTH),(int)(relativePosition.y / Chunk.HEIGHT),(int)(relativePosition.z / Chunk.DEPTH)];
 	}
 
-	public static Block GetBlockAt(Vector3 position)
+	public static Block GetBlockAt(Vector3 position, Chuck chuck)
 	{
 		Block result = null;
 		// Get the chunk.
-		Chunk chunk = GetChunkAt(position);
+		Chunk chunk = GetChunkAt(position, chuck);
 		if (chunk != null)
 		{
+			// Modulo the player's position by the measure of blocks in a chunk to get their position within their chunk.
 			result = chunk.blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH];
 		}
 
