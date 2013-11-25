@@ -78,7 +78,7 @@ public class PlayerScript : MonoBehaviour
 					if (chunk != null)
 					{
 						// Delete the block directly in front of the hit point.
-						Block clickedBlock = TerrainControllerScript.getBlockAt(alteredHitPoint);
+						Block clickedBlock = TerrainControllerScript.GetBlockAt(alteredHitPoint);
 						if (clickedBlock.type.Breakable)
 						{
 							// TODO Move this to block logic and not chunk logic.

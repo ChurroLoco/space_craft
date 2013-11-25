@@ -171,7 +171,7 @@ public class Chunk : MonoBehaviour
 
 	public void SetBlock(Vector3 position, int typeId)
 	{
-		Block block = TerrainControllerScript.getBlockAt(position);
+		Block block = TerrainControllerScript.GetBlockAt(position);
 		if (typeId > 0 && block == null)
 		{
 			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = new Block(BlockType.All[typeId], this, (int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH);

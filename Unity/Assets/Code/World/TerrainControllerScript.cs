@@ -50,7 +50,7 @@ public class TerrainControllerScript : MonoBehaviour
 		}
 	}
 
-	public static Chunk getChunkAt(Vector3 position)
+	public static Chunk GetChunkAt(Vector3 position)
 	{
 		if (position.x < 0 || position.x >= WIDTH * Chunk.WIDTH ||
 		    position.y < 0 || position.y >= HEIGHT * Chunk.HEIGHT ||
@@ -63,11 +63,11 @@ public class TerrainControllerScript : MonoBehaviour
 		return chunks[(int)(position.x / Chunk.WIDTH),(int)(position.y / Chunk.HEIGHT),(int)(position.z / Chunk.DEPTH)];
 	}
 
-	public static Block getBlockAt(Vector3 position)
+	public static Block GetBlockAt(Vector3 position)
 	{
 		Block result = null;
 		// Get the chunk.
-		Chunk chunk = getChunkAt(position);
+		Chunk chunk = GetChunkAt(position);
 		if (chunk != null)
 		{
 			result = chunk.blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH];
