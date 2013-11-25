@@ -53,9 +53,9 @@ public class PlayerScript : MonoBehaviour
 		if (Input.GetKeyDown(KeyCode.F))
 		{
 			GameObject flare = Instantiate(Resources.Load("Prefabs/Projectiles/Flare")) as GameObject;
-			flare.transform.position = transform.position + transform.forward;
-			flare.rigidbody.AddRelativeTorque(Vector3.right * 3);
-			flare.rigidbody.AddForce((transform.forward * 20) + (Vector3.up * 8));
+			flare.transform.position = playerCamera.transform.position + playerCamera.transform.forward * 0.2f;
+			flare.rigidbody.AddRelativeTorque(playerCamera.transform.right * 3);
+			flare.rigidbody.AddForce((playerCamera.transform.forward * 35) + (playerCamera.transform.up * 15));
 		}
 
 		bool leftClick = Input.GetMouseButtonDown(0);
