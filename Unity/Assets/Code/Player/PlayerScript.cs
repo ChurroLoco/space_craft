@@ -74,7 +74,7 @@ public class PlayerScript : MonoBehaviour
 					Vector3 alteredHitPoint = hit.point + (ray.direction * 0.001f);
 					Debug.Log(string.Format("AlteredHitPoint {0}", alteredHitPoint));
 
-					Chunk chunk = TerrainControllerScript.getChunkAt(alteredHitPoint);
+					Chunk chunk = TerrainControllerScript.GetChunkAt(alteredHitPoint);
 					if (chunk != null)
 					{
 						// Delete the block directly in front of the hit point.
@@ -93,7 +93,7 @@ public class PlayerScript : MonoBehaviour
 					Vector3 alteredHitPoint = hit.point - (ray.direction * 0.001f);
 					Debug.Log(string.Format("AlteredHitPoint {0}", alteredHitPoint));
 
-					Chunk chunk = TerrainControllerScript.getChunkAt(alteredHitPoint);
+					Chunk chunk = TerrainControllerScript.GetChunkAt(alteredHitPoint);
 					if (chunk != null)
 					{
 						// Create a block directly behind the hit point.

@@ -27,8 +27,24 @@
     {
       "id": 4,
       "data_class": "Block",
-      "name": "Glass Block",
-      "occludes_neighbors": false,
+      "name": "Grey Block",
+      "occludes_neighbors": true,
+      "texture_index": 4,
+      "breakable": true
+    },
+	{
+      "id": 5,
+      "data_class": "Block",
+      "name": "Mars Rock",
+      "occludes_neighbors": true,
+      "texture_index": 1,
+      "breakable": true
+    },
+	{
+      "id": 6,
+      "data_class": "Block",
+      "name": "Metal Mesh",
+      "occludes_neighbors": true,
       "texture_index": 5,
       "breakable": true
     }
