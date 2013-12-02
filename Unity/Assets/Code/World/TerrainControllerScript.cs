@@ -10,54 +10,49 @@ public class TerrainControllerScript : MonoBehaviour
 
 	public const int TERRAIN_HEIGHT = HEIGHT * Chunk.HEIGHT;	
 
-	public const string CHUCK_PREFAB_PATH = "Prefabs/Chuck";
+	public const string SECTOR_PREFAB_PATH = "Prefabs/Sector";
 	
-	private static List<Chuck> loadedChucks = new List<Chuck>();
+	private static List<Sector> loadedSectors = new List<Sector>();
 
 	void Start()
 	{
 		//StartCoroutine("GenerateWorld");
-		LoadChuck(0,0,0);
+		LoadSector(0,0,0);
 	}
-	
-	//public IEnumerator GenerateWorld()
-	//{
-		
-	//}
 
-	private void LoadChuck(int x, int y, int z)
+	private void LoadSector(int x, int y, int z)
 	{
-		Object resource = Resources.Load(CHUCK_PREFAB_PATH);
+		Object resource = Resources.Load(SECTOR_PREFAB_PATH);
 		if (resource != null)
 		{
-			GameObject chuckObject = Instantiate(resource) as GameObject;
-			if (chuckObject != null)
+			GameObject SectorObject = Instantiate(resource) as GameObject;
+			if (SectorObject != null)
 			{
-				chuckObject.transform.position = new Vector3(x * Chuck.WIDTH * Chunk.WIDTH, y * Chuck.HEIGHT * Chunk.HEIGHT, z * Chuck.DEPTH * Chunk.DEPTH);
-				chuckObject.name = string.Format("Chuck [{0},{1},{2}]", x, y, z);
-				chuckObject.transform.parent = this.transform;
-				Chuck chuckScript = chuckObject.GetComponent<Chuck>();
-				loadedChucks.Add(chuckScript);
-				chuckScript.init(x,y,z);
+				SectorObject.transform.position = new Vector3(x * Sector.WIDTH * Chunk.WIDTH, y * Sector.HEIGHT * Chunk.HEIGHT, z * Sector.DEPTH * Chunk.DEPTH);
+				SectorObject.name = string.Format("Sector [{0},{1},{2}]", x, y, z);
+				SectorObject.transform.parent = this.transform;
+				Sector SectorScript = SectorObject.GetComponent<Sector>();
+				loadedSectors.Add(SectorScript);
+				SectorScript.init(x,y,z);
 			}
 			else
 			{
-				Debug.LogError(string.Format("Chuck prefab could not be loaded from '{0}'", CHUCK_PREFAB_PATH));	
+				Debug.LogError(string.Format("Sector prefab could not be loaded from '{0}'", SECTOR_PREFAB_PATH));	
 			}
 		}
 	}
 
 
-	public static Chuck getChuckAt(Vector3 position)
+	public static Sector GetSectorAt(Vector3 position)
 	{
-		Chuck result = null;
-		foreach (Chuck chuck in loadedChucks)
+		Sector result = null;
+		foreach (Sector sector in loadedSectors)
 		{
-			if (chuck.xIndex == (int)(position.x / (Chuck.WIDTH * Chunk.WIDTH)) &&
-			    chuck.yIndex == (int)(position.y / (Chuck.HEIGHT * Chunk.HEIGHT)) &&
-			    chuck.zIndex ==  (int)(position.z / (Chuck.DEPTH * Chunk.DEPTH)))
+			if (sector.xIndex == (int)(position.x / (Sector.WIDTH * Chunk.WIDTH)) &&
+			    sector.yIndex == (int)(position.y / (Sector.HEIGHT * Chunk.HEIGHT)) &&
+			    sector.zIndex ==  (int)(position.z / (Sector.DEPTH * Chunk.DEPTH)))
 			{
-				result = chuck;
+				result = sector;
 				break;
 			}
 		}
@@ -65,38 +60,38 @@ public class TerrainControllerScript : MonoBehaviour
 		return result;
 	}
 
-	private static Vector3 PositionRelativeToChuck(Vector3 position, Chuck chuck)
+	private static Vector3 PositionRelativeToSector(Vector3 position, Sector sector)
 	{
 		return new Vector3(
-			position.x - (chuck.xIndex * Chuck.WIDTH * Chunk.WIDTH),
-			position.y - (chuck.yIndex * Chuck.HEIGHT * Chunk.HEIGHT),
-			position.z - (chuck.zIndex * Chuck.DEPTH * Chunk.DEPTH));
+			position.x - (sector.xIndex * Sector.WIDTH * Chunk.WIDTH),
+			position.y - (sector.yIndex * Sector.HEIGHT * Chunk.HEIGHT),
+			position.z - (sector.zIndex * Sector.DEPTH * Chunk.DEPTH));
 	}
 
-	public static Chunk GetChunkAt(Vector3 position, Chuck chuck)
+	public static Chunk GetChunkAt(Vector3 position, Sector sector)
 	{
-		if (chuck == null)
+		if (sector == null)
 		{
 			return null;
 		}
-		Vector3 relativePosition = PositionRelativeToChuck(position, chuck);
+		Vector3 relativePosition = PositionRelativeToSector(position, sector);
 
-		if (relativePosition.x < 0 || relativePosition.x >= Chuck.WIDTH * Chunk.WIDTH ||
-			    relativePosition.y < 0 || relativePosition.y >= Chuck.HEIGHT * Chunk.HEIGHT ||
-			    relativePosition.z < 0 || relativePosition.z >= Chuck.DEPTH * Chunk.DEPTH)
+		if (relativePosition.x < 0 || relativePosition.x >= Sector.WIDTH * Chunk.WIDTH ||
+			    relativePosition.y < 0 || relativePosition.y >= Sector.HEIGHT * Chunk.HEIGHT ||
+			    relativePosition.z < 0 || relativePosition.z >= Sector.DEPTH * Chunk.DEPTH)
 		{
 			// Asking for a position on the wrong Chunk. Return null. 
 			return null;
 		}
 		// Get the chunk.
-		return chuck.chunks[(int)(relativePosition.x / Chunk.WIDTH),(int)(relativePosition.y / Chunk.HEIGHT),(int)(relativePosition.z / Chunk.DEPTH)];
+		return sector.chunks[(int)(relativePosition.x / Chunk.WIDTH),(int)(relativePosition.y / Chunk.HEIGHT),(int)(relativePosition.z / Chunk.DEPTH)];
 	}
 
-	public static Block GetBlockAt(Vector3 position, Chuck chuck)
+	public static Block GetBlockAt(Vector3 position, Sector sector)
 	{
 		Block result = null;
 		// Get the chunk.
-		Chunk chunk = GetChunkAt(position, chuck);
+		Chunk chunk = GetChunkAt(position, sector);
 		if (chunk != null)
 		{
 			// Modulo the player's position by the measure of blocks in a chunk to get their position within their chunk.

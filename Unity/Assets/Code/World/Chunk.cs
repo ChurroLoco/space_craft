@@ -17,16 +17,61 @@ public class Chunk : MonoBehaviour
 	public MeshCollider meshCollider;
 	public MeshFilter meshFilter;
 
-	public Chuck chuck;
+	public Sector Sector;
 	
 	public Block[,,] blocks = new Block[WIDTH, HEIGHT, DEPTH];
 		
-	public void init(Chuck chuck)
+	public void init(Sector sector, int[] blockData)
 	{	
-		this.chuck = chuck;
-		SinBlock(0.3f, 0.6f, 0.7f, 0.3f);
-		//FillBlocks();
+		this.Sector = sector;
+		SetBlockData(blockData);
 		GenerateGeometry();
+	}
+
+	public int[] GetBlockData()
+	{
+		int[] blockData = new int[HEIGHT * DEPTH * WIDTH];
+		int pos = 0;
+		for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
+		{
+			for (int z = 0; z < Chunk.DEPTH; z++)
+			{
+				for (int x = 0; x < Chunk.WIDTH; x++)
+				{
+					if (blocks[x,y,z] != null && blocks[x,y,z].type != null)
+					{
+						blockData[pos] = blocks[x,y,z].type.Id;
+					}
+					else
+					{
+						blockData[pos] = 0;
+					}
+					pos++;
+				}
+			}
+		}
+
+		return blockData;
+	}
+
+	private void SetBlockData(int[] blockData)
+	{
+		int pos = 0;
+		for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
+		{
+			for (int z = 0; z < Chunk.DEPTH; z++)
+			{
+				for (int x = 0; x < Chunk.WIDTH; x++)
+				{
+					// For Each Block Within Each Chunk.
+					if (blockData[pos] > 0)
+					{
+						blocks[x, y, z] = new Block(BlockType.All[blockData[pos]], this, x, y, z);
+					}
+					pos++;
+				}
+			}
+		}
 	}
 
 	public Block GetBlockAtIndex(int x, int y, int z)
@@ -42,28 +87,35 @@ public class Chunk : MonoBehaviour
 			return blocks[x, y, z];
 		}
 	}
-	
-	private void FillBlocks()
+
+
+
+	public int[] FillBlocks()
 	{
-		for (int x = 0; x < WIDTH; x++)
+		int[] blockData = new int[HEIGHT * DEPTH * WIDTH];
+		int pos = 0;
+		for (int y = HEIGHT - 1; y >= 0; y--)
 		{
-			for (int y = 0; y < HEIGHT; y++)
+			for (int z = 0; z < DEPTH; z++)
 			{
-				for (int z = 0; z < DEPTH; z++)
+				for (int x = 0; x < WIDTH; x++)
 				{
-					blocks[x, y, z] = new Block(BlockType.All[1], this, x, y, z);
+					blockData[pos++] = 1;
 				}
 			}
 		}
+		return blockData;
 	}
 
-	private void SinBlock(float xFreq, float zFreq, float xAmp, float zAmp)
+	public int[] SinBlock(float xFreq, float zFreq, float xAmp, float zAmp)
 	{
-		for (int x = 0; x < WIDTH; x++)
+		int[] blockData = new int[HEIGHT * DEPTH * WIDTH];
+		int pos = 0;
+		for (int y = HEIGHT - 1; y >= 0; y--)
 		{
-			for (int y = 0; y < HEIGHT; y++)
+			for (int z = 0; z < DEPTH; z++)
 			{
-				for (int z = 0; z < DEPTH; z++)
+				for (int x = 0; x < WIDTH; x++)
 				{
 					float xWorldPos = (transform.position.x * WIDTH) + x;
 					float zWorldPos = (transform.position.z * DEPTH) + z;
@@ -76,32 +128,12 @@ public class Chunk : MonoBehaviour
 
 					if (normalizedheight <= cutOff)
 					{
-						blocks[x, y, z] = new Block(BlockType.All[1], this, x, y, z);
+						blockData[pos++] = (normalizedheight <= cutOff) ? 1: 0;
 					}
 				}
 			}
 		}
-	}
-	
-	private void RandomBlocks()
-	{
-		for (int x = 0; x < WIDTH; x++)
-		{
-			for (int y = 0; y < HEIGHT; y++)
-			{
-				for (int z = 0; z < DEPTH; z++)
-				{
-					if (Random.Range(0, 2) == 1)
-					{
-						blocks[x, y, z] = new Block(BlockType.All[1], this, x, y, z);
-					}
-					else
-					{
-						blocks[x, y, z] = null;
-					}
-				}
-			}
-		}
+		return blockData;
 	}
 	
 	public bool IsBlockEmpty(int x, int y, int z)
@@ -173,9 +205,9 @@ public class Chunk : MonoBehaviour
 		}
 	}
 
-	public void SetBlock(Vector3 position, int typeId, Chuck chuck)
+	public void SetBlock(Vector3 position, int typeId, Sector sector)
 	{
-		Block block = TerrainControllerScript.GetBlockAt(position, chuck);
+		Block block = TerrainControllerScript.GetBlockAt(position, sector);
 		if (typeId > 0 && block == null)
 		{
 			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = new Block(BlockType.All[typeId], this, (int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH);
