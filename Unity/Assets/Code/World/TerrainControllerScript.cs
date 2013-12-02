@@ -17,10 +17,10 @@ public class TerrainControllerScript : MonoBehaviour
 	void Start()
 	{
 		//StartCoroutine("GenerateWorld");
-		LoadSector(0,0,0);
+		GenerateSector(0,0,0);
 	}
 
-	private void LoadSector(int x, int y, int z)
+	private void GenerateSector(int x, int y, int z)
 	{
 		Object resource = Resources.Load(SECTOR_PREFAB_PATH);
 		if (resource != null)

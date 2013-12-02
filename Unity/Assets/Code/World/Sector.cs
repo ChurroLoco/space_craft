@@ -32,7 +32,7 @@ public class Sector : MonoBehaviour
 	{
 		get 
 		{
-			return "sector_" + xIndex + "_" + yIndex + "_" + zIndex + ".txt";
+			return "Data/sector_" + xIndex + "_" + yIndex + "_" + zIndex + ".scs";
 		}
 	}
 
