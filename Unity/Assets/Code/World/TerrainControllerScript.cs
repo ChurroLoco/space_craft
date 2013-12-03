@@ -5,24 +5,108 @@ using System.Collections.Generic;
 public class TerrainControllerScript : MonoBehaviour
 {
 	public const int WIDTH = 2;
-	public const int HEIGHT = 1;
+	public const int HEIGHT = 2;
 	public const int DEPTH = 2;
 
-	public const int TERRAIN_HEIGHT = HEIGHT * Chunk.HEIGHT;	
+	const string SECTOR_PREFAB_PATH = "Prefabs/Sector";
 
-	public const string SECTOR_PREFAB_PATH = "Prefabs/Sector";
-	
-	private static List<Sector> loadedSectors = new List<Sector>();
+	// The list of all fully loaded Sectors.
+	public List<Sector> activeSectors = new List<Sector>();
+
+	// The list of Sectors that have been instantiated but not generated.
+	public List<Sector> SectorsToGenerate = new List<Sector>();
+
+	public bool loadingSector = false;
+
+	public static TerrainControllerScript instance { get; private set; }
 
 	void Start()
 	{
-		//StartCoroutine("GenerateWorld");
-		GenerateSector(0,0,0);
+		instance = this;
+		LoadSector(0 ,0, 0);
 	}
 
-	private void GenerateSector(int x, int y, int z)
+	void Update()
+	{
+		if (!loadingSector && SectorsToGenerate.Count > 0)
+		{
+			loadingSector = true;
+			StartCoroutine(SectorsToGenerate[0].Generate());
+		}
+	}
+
+	// Loads a sector and puts it on a list to generate when ready.
+	public static void LoadSector(int x, int y, int z)
+	{
+		bool canLoad = true;
+		foreach (Sector sector in instance.activeSectors)
+		{
+			if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
+			{
+				canLoad = false;
+				break;
+			}
+		}
+		if (canLoad)
+		{
+			foreach (Sector sector in instance.SectorsToGenerate)
+			{
+				if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
+				{
+					canLoad = false;
+					break;
+				}
+			}
+
+			if (canLoad)
+			{
+				Sector sector = instance.InstantiateSector(x, y, z);
+				if (sector != null)
+				{
+					instance.SectorsToGenerate.Add(sector);
+				}
+			}
+		}
+	}
+
+	// Saves the sector's data and removes the sector from any lists, deleteing it. 
+	public static void UnloadSector(int x, int y, int z)
+	{
+		Sector sectorToRemove = null;
+		foreach (Sector sector in instance.activeSectors)
+		{
+			if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
+			{
+				// Save the sector and remove it.
+				sector.Save();
+				sectorToRemove = sector;
+				instance.activeSectors.Remove(sector);
+				break;
+			}
+		}
+		if (sectorToRemove == null)
+		{
+			foreach (Sector sector in instance.SectorsToGenerate)
+			{
+				if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
+				{
+					sectorToRemove = sector;
+					instance.SectorsToGenerate.Remove(sector);
+					break;
+				}
+			}
+		}
+		if (sectorToRemove != null)
+		{
+			GameObject.Destroy(sectorToRemove.gameObject);
+		}
+	}
+
+	// Loads and instantiates a sector gameobject and adds it to a queue to populate the chunks.
+	private Sector InstantiateSector(int x, int y, int z)
 	{
 		Object resource = Resources.Load(SECTOR_PREFAB_PATH);
+		Sector SectorScript = null;
 		if (resource != null)
 		{
 			GameObject SectorObject = Instantiate(resource) as GameObject;
@@ -31,22 +115,25 @@ public class TerrainControllerScript : MonoBehaviour
 				SectorObject.transform.position = new Vector3(x * Sector.WIDTH * Chunk.WIDTH, y * Sector.HEIGHT * Chunk.HEIGHT, z * Sector.DEPTH * Chunk.DEPTH);
 				SectorObject.name = string.Format("Sector [{0},{1},{2}]", x, y, z);
 				SectorObject.transform.parent = this.transform;
-				Sector SectorScript = SectorObject.GetComponent<Sector>();
-				loadedSectors.Add(SectorScript);
-				SectorScript.init(x,y,z);
+				SectorScript = SectorObject.GetComponent<Sector>();
+				SectorScript.init(x, y, z);
 			}
 			else
 			{
 				Debug.LogError(string.Format("Sector prefab could not be loaded from '{0}'", SECTOR_PREFAB_PATH));	
+
 			}
 		}
+		return SectorScript;
 	}
+
+
 
 
 	public static Sector GetSectorAt(Vector3 position)
 	{
 		Sector result = null;
-		foreach (Sector sector in loadedSectors)
+		foreach (Sector sector in instance.activeSectors)
 		{
 			if (sector.xIndex == (int)(position.x / (Sector.WIDTH * Chunk.WIDTH)) &&
 			    sector.yIndex == (int)(position.y / (Sector.HEIGHT * Chunk.HEIGHT)) &&
@@ -56,11 +143,10 @@ public class TerrainControllerScript : MonoBehaviour
 				break;
 			}
 		}
-		Debug.Log(result);
 		return result;
 	}
 
-	private static Vector3 PositionRelativeToSector(Vector3 position, Sector sector)
+	private Vector3 PositionRelativeToSector(Vector3 position, Sector sector)
 	{
 		return new Vector3(
 			position.x - (sector.xIndex * Sector.WIDTH * Chunk.WIDTH),
@@ -68,26 +154,30 @@ public class TerrainControllerScript : MonoBehaviour
 			position.z - (sector.zIndex * Sector.DEPTH * Chunk.DEPTH));
 	}
 
-	public static Chunk GetChunkAt(Vector3 position, Sector sector)
+	public static Chunk GetChunkAt(Vector3 position, Sector sector = null)
 	{
+		Chunk result = null;
+
 		if (sector == null)
 		{
-			return null;
+			sector = GetSectorAt(position);
 		}
-		Vector3 relativePosition = PositionRelativeToSector(position, sector);
-
-		if (relativePosition.x < 0 || relativePosition.x >= Sector.WIDTH * Chunk.WIDTH ||
-			    relativePosition.y < 0 || relativePosition.y >= Sector.HEIGHT * Chunk.HEIGHT ||
-			    relativePosition.z < 0 || relativePosition.z >= Sector.DEPTH * Chunk.DEPTH)
+		if (sector != null)
 		{
-			// Asking for a position on the wrong Chunk. Return null. 
-			return null;
+			Vector3 relativePosition = instance.PositionRelativeToSector(position, sector);
+
+			if (relativePosition.x > 0 && relativePosition.x <= Sector.WIDTH * Chunk.WIDTH &&
+				    relativePosition.y > 0 && relativePosition.y <= Sector.HEIGHT * Chunk.HEIGHT &&
+				    relativePosition.z > 0 && relativePosition.z <= Sector.DEPTH * Chunk.DEPTH)
+			{
+				result = sector.chunks[(int)(relativePosition.x / Chunk.WIDTH),(int)(relativePosition.y / Chunk.HEIGHT),(int)(relativePosition.z / Chunk.DEPTH)];
+			}
 		}
-		// Get the chunk.
-		return sector.chunks[(int)(relativePosition.x / Chunk.WIDTH),(int)(relativePosition.y / Chunk.HEIGHT),(int)(relativePosition.z / Chunk.DEPTH)];
+
+		return result;
 	}
 
-	public static Block GetBlockAt(Vector3 position, Sector sector)
+	public static Block GetBlockAt(Vector3 position, Sector sector = null)
 	{
 		Block result = null;
 		// Get the chunk.

@@ -17,13 +17,21 @@ public class Chunk : MonoBehaviour
 	public MeshCollider meshCollider;
 	public MeshFilter meshFilter;
 
-	public Sector Sector;
+	public int xIndex;
+	public int yIndex;
+	public int zIndex;
+
+
+	public Sector sector;
 	
 	public Block[,,] blocks = new Block[WIDTH, HEIGHT, DEPTH];
 		
-	public void init(Sector sector, int[] blockData)
+	public void init(Sector sector, int[] blockData, int x, int y, int z)
 	{	
-		this.Sector = sector;
+		this.sector = sector;
+		xIndex = x;
+		yIndex = y;
+		zIndex = z;
 		SetBlockData(blockData);
 		GenerateGeometry();
 	}
@@ -124,12 +132,9 @@ public class Chunk : MonoBehaviour
 					float cutOff = (xSin + zSin)/2;
 
 					float blocksHeight = (transform.position.y * HEIGHT) + y;
-					float normalizedheight = blocksHeight / TerrainControllerScript.TERRAIN_HEIGHT;
+					float normalizedheight = blocksHeight / (Sector.HEIGHT * HEIGHT);
 
-					if (normalizedheight <= cutOff)
-					{
-						blockData[pos++] = (normalizedheight <= cutOff) ? 1: 0;
-					}
+					blockData[pos++] = (normalizedheight <= cutOff) ? 1: 0;
 				}
 			}
 		}
@@ -219,4 +224,22 @@ public class Chunk : MonoBehaviour
 			GenerateGeometry();
 		}
 	}
+
+	public void SetBlock(Block block, int typeId)
+	{
+		if (block != null)
+		{
+			if (typeId > 0)
+			{
+				blocks[block.xIndex, block.yIndex, block.zIndex] = new Block(BlockType.All[typeId], this, block.xIndex, block.yIndex, block.zIndex);
+			}
+			else if (typeId == 0 )
+			{
+				blocks[block.xIndex, block.yIndex, block.zIndex] = null;
+			}
+			GenerateGeometry();
+		}
+	}
+
+
 }

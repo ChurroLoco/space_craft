@@ -5,12 +5,12 @@ using System.Collections.Generic;
 public class Block
 {
 	// The chunk that this block belongs to.
-	Chunk chunk;
+	public Chunk chunk;
 
 	// Placememnt of the block relative to it's chunk.
-	int xIndex;
-	int yIndex;
-	int zIndex;
+	public int xIndex;
+	public int yIndex;
+	public int zIndex;
 
 
 	// The layer this block resides on. 
@@ -29,15 +29,8 @@ public class Block
 		this.xIndex = x;
 		this.yIndex = y;
 		this.zIndex = z;
-
-		clone();
 	}
 
-	// Clones block specific attributes from a data structure somewhere.
-	private void clone()
-	{
-
-	}
 
 	// Returns the triangle indices for a face. 
 	public virtual List<int> getIndices(int startIndex)

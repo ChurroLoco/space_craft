@@ -14,18 +14,19 @@ public class Sector : MonoBehaviour
 	public int yIndex;
 	public int zIndex;
 
+	public Vector3 center;
+
 	public const string CHUNK_PREFAB_PATH = "Prefabs/Chunk";
 	
 	public Chunk[,,] chunks = new Chunk[WIDTH, HEIGHT, DEPTH];
 
 	public void init (int x, int y, int z)
 	{
-		Debug.Log(name + " has been loaded.");
 		xIndex = x;
 		yIndex = y;
 		zIndex = z;
 
-		StartCoroutine(GenerateSector());
+		center = transform.position + new Vector3((WIDTH * Chunk.WIDTH) / 2, (HEIGHT * Chunk.HEIGHT) / 2, (DEPTH * Chunk.DEPTH) / 2);
 	}
 
 	public string fileName
@@ -36,7 +37,7 @@ public class Sector : MonoBehaviour
 		}
 	}
 
-	public IEnumerator GenerateSector()
+	public IEnumerator Generate()
 	{
 		Object resource = Resources.Load(CHUNK_PREFAB_PATH);
 		
@@ -51,9 +52,9 @@ public class Sector : MonoBehaviour
 						GameObject chunkObject = Instantiate(resource) as GameObject;
 						if (chunkObject != null)
 						{
-							chunkObject.transform.position = new Vector3(x * Chunk.WIDTH, y * Chunk.HEIGHT, z * Chunk.DEPTH);
-							chunkObject.name = string.Format("Chunk [{0},{1},{2}]", x, y, z);
 							chunkObject.transform.parent = this.transform;
+							chunkObject.transform.localPosition = new Vector3(x * Chunk.WIDTH, y * Chunk.HEIGHT, z * Chunk.DEPTH);
+							chunkObject.name = string.Format("Chunk [{0},{1},{2}]", x, y, z);
 							Chunk chunkScript = chunkObject.GetComponent<Chunk>();
 							chunks[x, y, z] = chunkScript;
 						}
@@ -92,7 +93,7 @@ public class Sector : MonoBehaviour
 					
 					if (chunk != null)
 					{
-						chunk.init(this, blockData);
+						chunk.init(this, blockData, x, y, z);
 					}
 					
 					yield return new WaitForSeconds(0.02f);
@@ -100,9 +101,15 @@ public class Sector : MonoBehaviour
 			}
 		}
 		bReader.Close();
+
+		// This stuff should probably be turned into a callback or something.
+		TerrainControllerScript.instance.loadingSector = false;
+		TerrainControllerScript.instance.SectorsToGenerate.Remove(this);
+		TerrainControllerScript.instance.activeSectors.Add(this);
+		Debug.Log("Finished Generating " + name);
 	}
 
-
+	// Savse the block data of a sector.
 	public void Save(bool create = false)
 	{
 		Stream stream = File.Open(fileName, FileMode.Create);
@@ -121,6 +128,7 @@ public class Sector : MonoBehaviour
 					{
 						if (create)
 						{
+							// In the future, we do seed generation here...
 							blockdata = chunk.SinBlock(0.3f, 0.6f, 0.7f, 0.3f);
 						}
 						else
