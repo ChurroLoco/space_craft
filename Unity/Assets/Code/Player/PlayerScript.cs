@@ -27,7 +27,6 @@ public class PlayerScript : MonoBehaviour
 		player.name = "Player";
 		player.transform.position = position;
 		PlayerScript script = player.GetComponent<PlayerScript>();
-
 		return script;
 	}
 	
@@ -113,10 +112,10 @@ public class PlayerScript : MonoBehaviour
 
 						// Delete the block directly in front of the hit point.
 						Block clickedBlock = TerrainControllerScript.GetBlockAt(alteredHitPoint);
-						if (clickedBlock.type.Breakable)
+						if (clickedBlock != null && clickedBlock.type.Breakable)
 						{
 							// TODO Move this to block logic and not chunk logic.
-							chunk.SetBlock(block, 0);
+							block.chunk.SetBlock(block, 0);
 							GameObject particles = Instantiate(Resources.Load("Prefabs/Particles/Small Dust Burst")) as GameObject;
 							particles.transform.position = hit.point;
 						}
@@ -158,42 +157,59 @@ public class PlayerScript : MonoBehaviour
 			movement.y = verticalSpeed;
 			characterController.Move(movement * Time.deltaTime);
 
-			// Load Our Adjacent Sectors based on Player's location within their own sector.
+			// Load Sectors around the player.
 			// Only load if the player has moved into a new sector quadrant. 
-			Vector3 tempSectorQuadrant = transform.position - sector.center;
+			Vector3 tempSectorQuadrant = Vector3.Normalize(transform.position - sector.center);
 			tempSectorQuadrant = new Vector3(Mathf.Sign(tempSectorQuadrant.x), Mathf.Sign(tempSectorQuadrant.y), Mathf.Sign(tempSectorQuadrant.z));
 
 			if (tempSectorQuadrant != sectorQuadrant)
-			{
+			{ 
 				sectorQuadrant = tempSectorQuadrant;
-				if (sectorQuadrant.x != 0 && sector.xIndex + sectorQuadrant.x >= 0)
+				Vector3 tempCoords = new Vector3(sector.xIndex + (int) tempSectorQuadrant.x, sector.yIndex + (int) tempSectorQuadrant.y ,sector.zIndex + (int)sectorQuadrant.z);
+				// X Adjacent.
+				if (tempCoords.x >= 0)
 				{
-					TerrainControllerScript.LoadSector(sector.xIndex + (int)sectorQuadrant.x, sector.yIndex, sector.zIndex);
-					//TerrainControllerScript.UnloadSector((int)-sectorQuadrant.x, sector.yIndex, sector.zIndex);
+					TerrainControllerScript.LoadSector((int)tempCoords.x, sector.yIndex, sector.zIndex);
 				}
-				
-				if (sectorQuadrant.y != 0 && sector.yIndex + sectorQuadrant.y >= 0)
+
+				// Y Adjacent.
+				if (tempCoords.y >= 0)
 				{
-					TerrainControllerScript.LoadSector(sector.xIndex, sector.yIndex + (int)sectorQuadrant.y, sector.zIndex);
-					//TerrainControllerScript.UnloadSector(sector.xIndex, (int)-sectorQuadrant.y, sector.zIndex);
+					TerrainControllerScript.LoadSector(sector.xIndex, (int)tempCoords.y, sector.zIndex);
 				}
-				
-				if (sectorQuadrant.z != 0 && sector.zIndex + sectorQuadrant.z >= 0)
+
+				// Z Adjacent.
+				if (tempCoords.z >= 0) 
 				{
-					TerrainControllerScript.LoadSector(sector.xIndex, sector.yIndex, sector.zIndex + (int)sectorQuadrant.z);
-					//TerrainControllerScript.UnloadSector(sector.xIndex, sector.yIndex, (int)-sectorQuadrant.z);
+					TerrainControllerScript.LoadSector(sector.xIndex, sector.yIndex, (int)tempCoords.z);
 				} 
 
-				// This should be smarter, but we'll need a "chunkwise" face occlusion thing to make it into what it should be.
-				// That and diagonals. 
+				// X and Y Diagonal.
+				if (tempCoords.x >= 0 && tempCoords.y >= 0)
+				{
+					TerrainControllerScript.LoadSector((int)tempCoords.x, (int)tempCoords.y, sector.zIndex);
+				}
+
+				// X and Z Diagonal
+				if (tempCoords.x >= 0 && tempCoords.z >= 0)
+				{
+					TerrainControllerScript.LoadSector((int)tempCoords.x, sector.yIndex, (int)tempCoords.z);
+				}
+
+				// Y and Z Diagonal
+				if (tempCoords.y >= 0 && tempCoords.z >= 0)
+				{
+					TerrainControllerScript.LoadSector(sector.xIndex, (int)tempCoords.y, (int)tempCoords.z);
+				}
+
+				// X Y Z Diagonal
+				if (tempCoords.x >= 0 && tempCoords.y >= 0 && tempCoords.z >= 0)
+				{
+					TerrainControllerScript.LoadSector((int)tempCoords.x, (int)tempCoords.y, (int)tempCoords.z);
+				}
+
+				// This could be smarter, but we'll need a "chunkwise" face occlusion thing to make it into what it should be.
 			}
-		}
-		else
-		{
-			// Fuck. 
-			TerrainControllerScript.LoadSector((int)(transform.position.x) / (Sector.WIDTH * Chunk.WIDTH), 
-			                                   (int)(transform.position.y) / (Sector.HEIGHT * Chunk.HEIGHT),
-			                                   (int)(transform.position.z) / (Sector.DEPTH * Chunk.DEPTH));
 		}
 	}
 

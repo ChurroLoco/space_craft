@@ -15,7 +15,7 @@ public class GameControllerScript : MonoBehaviour
 
 	void SpawnPlayer()
 	{
-		PlayerScript.Spawn(TerrainControllerScript.instance.activeSectors[0].transform.position + new Vector3(16, 16, 16));
+		PlayerScript.Spawn(TerrainControllerScript.instance.activeSectors[0].transform.position + new Vector3(16, 12, 16));
 	}
 	
 	void OnApplicationFocus(bool focusStatus) 
