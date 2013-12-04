@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 public class TerrainControllerScript : MonoBehaviour
 {
-	public const int WIDTH = 2;
-	public const int HEIGHT = 2;
-	public const int DEPTH = 2;
+	public const int WIDTH = 999;
+	public const int HEIGHT = 999;
+	public const int DEPTH = 999;
 
 	const string SECTOR_PREFAB_PATH = "Prefabs/Sector";
 
@@ -39,17 +39,11 @@ public class TerrainControllerScript : MonoBehaviour
 	public static void LoadSector(int x, int y, int z)
 	{
 		bool canLoad = true;
-		foreach (Sector sector in instance.activeSectors)
+		if (x >= 0 && x <= WIDTH &&
+		    y >= 0 && y <= HEIGHT &&
+		    z >= 0 && z <= DEPTH)
 		{
-			if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
-			{
-				canLoad = false;
-				break;
-			}
-		}
-		if (canLoad)
-		{
-			foreach (Sector sector in instance.SectorsToGenerate)
+			foreach (Sector sector in instance.activeSectors)
 			{
 				if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
 				{
@@ -57,13 +51,24 @@ public class TerrainControllerScript : MonoBehaviour
 					break;
 				}
 			}
-
 			if (canLoad)
 			{
-				Sector sector = instance.InstantiateSector(x, y, z);
-				if (sector != null)
+				foreach (Sector sector in instance.SectorsToGenerate)
 				{
-					instance.SectorsToGenerate.Add(sector);
+					if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
+					{
+						canLoad = false;
+						break;
+					}
+				}
+
+				if (canLoad)
+				{
+					Sector sector = instance.InstantiateSector(x, y, z);
+					if (sector != null)
+					{
+						instance.SectorsToGenerate.Add(sector);
+					}
 				}
 			}
 		}
@@ -72,33 +77,41 @@ public class TerrainControllerScript : MonoBehaviour
 	// Saves the sector's data and removes the sector from any lists, deleteing it. 
 	public static void UnloadSector(int x, int y, int z)
 	{
-		Sector sectorToRemove = null;
-		foreach (Sector sector in instance.activeSectors)
-		{
-			if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
+		if (x >= 0 && x <= WIDTH &&
+		    y >= 0 && y <= HEIGHT &&
+		    z >= 0 && z <= DEPTH)
 			{
-				// Save the sector and remove it.
-				sector.Save();
-				sectorToRemove = sector;
-				instance.activeSectors.Remove(sector);
-				break;
-			}
-		}
-		if (sectorToRemove == null)
-		{
-			foreach (Sector sector in instance.SectorsToGenerate)
+			Sector sectorToRemove = null;
+
+			// Check active sectors.
+			foreach (Sector sector in instance.activeSectors)
 			{
 				if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
 				{
+					// Save the sector and remove it.
+					sector.Save();
 					sectorToRemove = sector;
-					instance.SectorsToGenerate.Remove(sector);
+					instance.activeSectors.Remove(sector);
 					break;
 				}
 			}
-		}
-		if (sectorToRemove != null)
-		{
-			GameObject.Destroy(sectorToRemove.gameObject);
+			if (sectorToRemove == null)
+			{
+				// Check Waiting Sectors.
+				foreach (Sector sector in instance.SectorsToGenerate)
+				{
+					if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
+					{
+						sectorToRemove = sector;
+						instance.SectorsToGenerate.Remove(sector);
+						break;
+					}
+				}
+			}
+			if (sectorToRemove != null)
+			{
+				GameObject.Destroy(sectorToRemove.gameObject);
+			}
 		}
 	}
 

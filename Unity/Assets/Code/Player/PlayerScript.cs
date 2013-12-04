@@ -16,7 +16,7 @@ public class PlayerScript : MonoBehaviour
 	private Chunk chunk = null;
 	private Block block = null;
 
-	private Vector3 sectorQuadrant;
+	private Sector previousSector = null;
 
 	[SerializeField]
 	private int selectedBlockTypeId = 1;
@@ -158,58 +158,124 @@ public class PlayerScript : MonoBehaviour
 			characterController.Move(movement * Time.deltaTime);
 
 			// Load Sectors around the player.
-			// Only load if the player has moved into a new sector quadrant. 
-			Vector3 tempSectorQuadrant = Vector3.Normalize(transform.position - sector.center);
-			tempSectorQuadrant = new Vector3(Mathf.Sign(tempSectorQuadrant.x), Mathf.Sign(tempSectorQuadrant.y), Mathf.Sign(tempSectorQuadrant.z));
-
-			if (tempSectorQuadrant != sectorQuadrant)
-			{ 
-				sectorQuadrant = tempSectorQuadrant;
-				Vector3 tempCoords = new Vector3(sector.xIndex + (int) tempSectorQuadrant.x, sector.yIndex + (int) tempSectorQuadrant.y ,sector.zIndex + (int)sectorQuadrant.z);
-				// X Adjacent.
-				if (tempCoords.x >= 0)
+			if (sector != previousSector)
+			{
+				if (previousSector != null)
 				{
-					TerrainControllerScript.LoadSector((int)tempCoords.x, sector.yIndex, sector.zIndex);
+					int deltaX = Mathf.Clamp(sector.xIndex - previousSector.xIndex, -1, 1);
+					int deltaY = Mathf.Clamp(sector.yIndex - previousSector.yIndex, -1, 1);
+					int deltaZ = Mathf.Clamp(sector.zIndex - previousSector.zIndex, -1, 1);
+
+					// Load the next nine sectors in the direction the player moved.
+					LoadNewSectors(deltaX, deltaY, deltaZ);
+					// Unload the nine sectors now two sectors away from the player.
+					UnloadOldSectors(deltaX * -2, deltaY * -2, deltaZ * -2);
 				}
-
-				// Y Adjacent.
-				if (tempCoords.y >= 0)
+				else
 				{
-					TerrainControllerScript.LoadSector(sector.xIndex, (int)tempCoords.y, sector.zIndex);
+					// We just entered the game, Load All 27 Sectors.
+					LoadNewSectors(0, 0, 0);
 				}
-
-				// Z Adjacent.
-				if (tempCoords.z >= 0) 
-				{
-					TerrainControllerScript.LoadSector(sector.xIndex, sector.yIndex, (int)tempCoords.z);
-				} 
-
-				// X and Y Diagonal.
-				if (tempCoords.x >= 0 && tempCoords.y >= 0)
-				{
-					TerrainControllerScript.LoadSector((int)tempCoords.x, (int)tempCoords.y, sector.zIndex);
-				}
-
-				// X and Z Diagonal
-				if (tempCoords.x >= 0 && tempCoords.z >= 0)
-				{
-					TerrainControllerScript.LoadSector((int)tempCoords.x, sector.yIndex, (int)tempCoords.z);
-				}
-
-				// Y and Z Diagonal
-				if (tempCoords.y >= 0 && tempCoords.z >= 0)
-				{
-					TerrainControllerScript.LoadSector(sector.xIndex, (int)tempCoords.y, (int)tempCoords.z);
-				}
-
-				// X Y Z Diagonal
-				if (tempCoords.x >= 0 && tempCoords.y >= 0 && tempCoords.z >= 0)
-				{
-					TerrainControllerScript.LoadSector((int)tempCoords.x, (int)tempCoords.y, (int)tempCoords.z);
-				}
-
-				// This could be smarter, but we'll need a "chunkwise" face occlusion thing to make it into what it should be.
+				previousSector = sector;
 			}
+		}
+	}
+
+	private void LoadNewSectors(int deltaX, int deltaY, int deltaZ)
+	{
+		// Forward
+		TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY, sector.zIndex + deltaZ);
+
+		// X Adjacents.
+		if (deltaX == 0)
+		{
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY, sector.zIndex + deltaZ);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY, sector.zIndex + deltaZ);
+		}
+		// Y Adjacents.
+		if (deltaY == 0)
+		{
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ);
+		}
+		// Z Adjacents.
+		if (deltaZ == 0)
+		{
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY, sector.zIndex + deltaZ - 1);
+		}
+		// X and Y Diagonals
+		if (deltaX == 0 && deltaY == 0)
+		{
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ);
+		}
+		// X and Z Diagonals
+		if (deltaX == 0 && deltaZ == 0)
+		{
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY, sector.zIndex + deltaZ - 1);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY, sector.zIndex + deltaZ - 1);
+		}
+		// Y and Z Diagonals
+		if (deltaY == 0 && deltaZ == 0)
+		{
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ - 1);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ - 1);
+		}
+	}
+
+	private void UnloadOldSectors(int deltaX, int deltaY, int deltaZ)
+	{
+		// Forward
+		TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY, sector.zIndex + deltaZ);
+		
+		// X Adjacents.
+		if (deltaX == 0)
+		{
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY, sector.zIndex + deltaZ);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY, sector.zIndex + deltaZ);
+		}
+		// Y Adjacents.
+		if (deltaY == 0)
+		{
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ);
+		}
+		// Z Adjacents.
+		if (deltaZ == 0)
+		{
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY, sector.zIndex + deltaZ - 1);
+		}
+		// X and Y Diagonals
+		if (deltaX == 0 && deltaY == 0)
+		{
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ);
+		}
+		// X and Z Diagonals
+		if (deltaX == 0 && deltaZ == 0)
+		{
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY, sector.zIndex + deltaZ - 1);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX - 1, sector.yIndex + deltaY, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX + 1, sector.yIndex + deltaY, sector.zIndex + deltaZ - 1);
+		}
+		// Y and Z Diagonals
+		if (deltaY == 0 && deltaZ == 0)
+		{
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ - 1);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY - 1, sector.zIndex + deltaZ + 1);
+			TerrainControllerScript.UnloadSector(sector.xIndex + deltaX, sector.yIndex + deltaY + 1, sector.zIndex + deltaZ - 1);
 		}
 	}
 
