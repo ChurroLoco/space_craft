@@ -186,6 +186,8 @@ public class PlayerScript : MonoBehaviour
 
 	private void LoadNewSectors(int deltaX, int deltaY, int deltaZ)
 	{
+		Debug.Log(string.Format("DEALTA: [{0},{1},{2}]", deltaX, deltaY, deltaZ));
+
 		// Forward
 		TerrainControllerScript.LoadSector(sector.xIndex + deltaX, sector.yIndex + deltaY, sector.zIndex + deltaZ);
 

@@ -6,7 +6,7 @@ using System.IO;
 public class Sector : MonoBehaviour 
 {
 	public const int WIDTH = 4;
-	public const int HEIGHT = 2;	
+	public const int HEIGHT = 4;	
 	public const int DEPTH = 4;
 	public long id;
 
@@ -33,7 +33,7 @@ public class Sector : MonoBehaviour
 		zIndex = z;
 
 		center = transform.position + new Vector3((WIDTH * Chunk.WIDTH) / 2, (HEIGHT * Chunk.HEIGHT) / 2, (DEPTH * Chunk.DEPTH) / 2);
-		saveTimer = Time.time;
+		saveTimer = Time.time + MIN_SAVE_TIME;
 	}
 
 	public string fileName
@@ -46,10 +46,10 @@ public class Sector : MonoBehaviour
 
 	public void ActiveUpdate()
 	{
-		if (dirty && Time.time - saveTimer > MIN_SAVE_TIME) 
+		if (dirty && Time.time > saveTimer) 
 		{
 			dirty = false;
-			saveTimer = Time.time;
+			saveTimer = Time.time + MIN_SAVE_TIME;
 			Save();
 			Debug.Log(name);
 		}
@@ -111,7 +111,7 @@ public class Sector : MonoBehaviour
 					int[] blockData = new int[Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
 					for (int i = 0; i < blockData.Length; i++)
 					{
-						blockData[i] = bReader.ReadInt32();
+						blockData[i] = (int)bReader.ReadUInt16();
 					}
 					
 					if (chunk != null)
@@ -168,7 +168,7 @@ public class Sector : MonoBehaviour
 					// Write the chunk's BlockData to the file.
 					for (int i = 0; i < blockdata.Length; i++)
 					{
-						bWriter.Write(blockdata[i]);
+						bWriter.Write((ushort)blockdata[i]);
 					}
 				}
 			}
