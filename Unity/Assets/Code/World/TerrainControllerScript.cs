@@ -16,7 +16,7 @@ public class TerrainControllerScript : MonoBehaviour
 	// The list of Sectors that have been instantiated but not generated.
 	public List<Sector> SectorsToGenerate = new List<Sector>();
 
-	public bool loadingSector = false;
+	public Sector loadingSector = null;
 
 	public static TerrainControllerScript instance { get; private set; }
 
@@ -28,16 +28,28 @@ public class TerrainControllerScript : MonoBehaviour
 
 	void Update()
 	{
-		if (!loadingSector && SectorsToGenerate.Count > 0)
+		if (loadingSector == null && SectorsToGenerate.Count > 0)
 		{
-			loadingSector = true;
-			StartCoroutine(SectorsToGenerate[0].Generate());
+			// Generate or Unload the top sector in the list.
+			loadingSector = SectorsToGenerate[0];
+			SectorsToGenerate.RemoveAt(0);
+			if (loadingSector.canBeUnloaded)
+			{
+				GameObject.Destroy(loadingSector.gameObject);
+				loadingSector = null;
+			}
+			else
+			{
+				StartCoroutine(loadingSector.Generate());
+			}
+			
 		}
 
 		for (int i = 0; i < activeSectors.Count; i++)
 		{
 			Sector sector = activeSectors[i];
 			sector.ActiveUpdate();
+
 			// Handle Unloading Logic.
 			if (sector.canBeUnloaded)
 			{
@@ -153,7 +165,19 @@ public class TerrainControllerScript : MonoBehaviour
 		return SectorScript;
 	}
 
-
+	public void ActivateSector(Sector sector)
+	{
+		if (!activeSectors.Contains(sector) && loadingSector == sector)
+		{
+			activeSectors.Add(sector);
+		}
+		else
+		{
+			// redundancy check.
+			GameObject.Destroy(sector.gameObject);
+		}
+		loadingSector = null;
+	}
 
 
 	public static Sector GetSectorAt(Vector3 position)

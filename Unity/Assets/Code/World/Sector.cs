@@ -40,7 +40,14 @@ public class Sector : MonoBehaviour
 	{
 		get 
 		{
-			return "Data/sector_" + xIndex + "_" + yIndex + "_" + zIndex + ".scs";
+			return string.Format("sec_{0}_{1}_{2}.scs", xIndex, yIndex, zIndex);
+		}
+	}
+	public string filePath
+	{
+		get
+		{
+			return string.Format("{0}/secdata", Application.persistentDataPath);
 		}
 	}
 
@@ -91,13 +98,18 @@ public class Sector : MonoBehaviour
 			}
 		}
 
+		// Create the folder if we don't have one made.
+		if (!Directory.Exists(filePath))
+		{
+			Directory.CreateDirectory(filePath);
+		}
 		// Now populate the newly initialized chunks with data from a save file.
-		if (!File.Exists(fileName))
+		if (!File.Exists(filePath +"/"+ fileName))
 		{
 			// Stupid, but effective!
 			Save(true);
 		}
-		Stream stream = File.Open(fileName, FileMode.Open);
+		Stream stream = File.Open(filePath +"/"+ fileName, FileMode.Open);
 		BinaryReader bReader = new BinaryReader(stream);
 		
 		for (int y = HEIGHT - 1; y >= 0; y--)
@@ -125,17 +137,20 @@ public class Sector : MonoBehaviour
 		}
 		bReader.Close();
 
-		// This stuff should probably be turned into a callback or something.
-		TerrainControllerScript.instance.loadingSector = false;
-		TerrainControllerScript.instance.SectorsToGenerate.Remove(this);
-		TerrainControllerScript.instance.activeSectors.Add(this);
+		TerrainControllerScript.instance.ActivateSector(this);
 		Debug.Log("Finished Generating " + name);
 	}
 
 	// Savse the block data of a sector.
 	public void Save(bool create = false)
 	{
-		Stream stream = File.Open(fileName, FileMode.Create);
+		// Create the folder if we don't have one made.
+		if (!Directory.Exists(filePath))
+		{
+			Directory.CreateDirectory(filePath);
+		}
+
+		Stream stream = File.Open(filePath +"/"+ fileName, FileMode.Create);
 		BinaryWriter bWriter = new BinaryWriter(stream);
 
 		for (int y = HEIGHT - 1; y >= 0; y--)
