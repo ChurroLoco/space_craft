@@ -107,15 +107,13 @@ public class PlayerScript : MonoBehaviour
 					if (leftClick)
 					{
 						Vector3 alteredHitPoint = hit.point + (ray.direction * 0.001f);
-						Debug.Log(string.Format("AlteredHitPoint {0}", alteredHitPoint));
-
 
 						// Delete the block directly in front of the hit point.
 						Block clickedBlock = TerrainControllerScript.GetBlockAt(alteredHitPoint);
 						if (clickedBlock != null && clickedBlock.type.Breakable)
 						{
 							// TODO Move this to block logic and not chunk logic.
-							block.chunk.SetBlock(block, 0);
+							clickedBlock.chunk.SetBlock(clickedBlock, 0);
 							GameObject particles = Instantiate(Resources.Load("Prefabs/Particles/Small Dust Burst")) as GameObject;
 							particles.transform.position = hit.point;
 						}
@@ -123,8 +121,6 @@ public class PlayerScript : MonoBehaviour
 					else if (rightclick)
 					{
 						Vector3 alteredHitPoint = hit.point - (ray.direction * 0.001f);
-						Debug.Log(string.Format("AlteredHitPoint {0}", alteredHitPoint));
-
 						Chunk chunk = TerrainControllerScript.GetChunkAt(alteredHitPoint);
 						if (chunk != null)
 						{
@@ -178,6 +174,13 @@ public class PlayerScript : MonoBehaviour
 				}
 				previousSector = sector;
 			}
+		}
+		else
+		{
+			// We fucked up.
+			TerrainControllerScript.LoadSector((int)transform.position.x / (Sector.WIDTH * Chunk.WIDTH), 
+			                                   (int)transform.position.y / (Sector.HEIGHT * Chunk.HEIGHT), 
+			                                   (int)transform.position.z / (Sector.DEPTH * Chunk.DEPTH));
 		}
 	}
 

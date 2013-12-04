@@ -26,6 +26,8 @@ public class Chunk : MonoBehaviour
 	
 	public Block[,,] blocks = new Block[WIDTH, HEIGHT, DEPTH];
 		
+	public bool dirty = false;
+
 	public void init(Sector sector, int[] blockData, int x, int y, int z)
 	{	
 		this.sector = sector;
@@ -34,6 +36,16 @@ public class Chunk : MonoBehaviour
 		zIndex = z;
 		SetBlockData(blockData);
 		GenerateGeometry();
+	}
+
+	public void ActiveUpdate()
+	{
+		if (dirty) 
+		{
+			sector.dirty = true;
+			dirty = false;
+			GenerateGeometry();
+		}
 	}
 
 	public int[] GetBlockData()
@@ -216,12 +228,12 @@ public class Chunk : MonoBehaviour
 		if (typeId > 0 && block == null)
 		{
 			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = new Block(BlockType.All[typeId], this, (int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH);
-			GenerateGeometry();
+			dirty = true;
 		}
 		else if (typeId == 0 && block != null)
 		{
 			blocks[(int)position.x % Chunk.WIDTH, (int)position.y % Chunk.HEIGHT, (int)position.z % Chunk.DEPTH] = null;
-			GenerateGeometry();
+			dirty = true;
 		}
 	}
 
@@ -232,12 +244,13 @@ public class Chunk : MonoBehaviour
 			if (typeId > 0)
 			{
 				blocks[block.xIndex, block.yIndex, block.zIndex] = new Block(BlockType.All[typeId], this, block.xIndex, block.yIndex, block.zIndex);
+				dirty = true;
 			}
 			else if (typeId == 0 )
 			{
 				blocks[block.xIndex, block.yIndex, block.zIndex] = null;
+				dirty = true;
 			}
-			GenerateGeometry();
 		}
 	}
 

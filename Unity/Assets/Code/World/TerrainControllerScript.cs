@@ -33,6 +33,23 @@ public class TerrainControllerScript : MonoBehaviour
 			loadingSector = true;
 			StartCoroutine(SectorsToGenerate[0].Generate());
 		}
+
+		for (int i = 0; i < activeSectors.Count; i++)
+		{
+			Sector sector = activeSectors[i];
+			sector.ActiveUpdate();
+			// Handle Unloading Logic.
+			if (sector.canBeUnloaded)
+			{
+				if (sector.dirty)
+				{
+					sector.Save();
+				}
+				activeSectors.RemoveAt(i);
+				GameObject.Destroy(sector.gameObject);
+				i--;
+			}
+		}
 	}
 
 	// Loads a sector and puts it on a list to generate when ready.
@@ -88,10 +105,7 @@ public class TerrainControllerScript : MonoBehaviour
 			{
 				if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
 				{
-					// Save the sector and remove it.
-					sector.Save();
 					sectorToRemove = sector;
-					instance.activeSectors.Remove(sector);
 					break;
 				}
 			}
@@ -103,14 +117,13 @@ public class TerrainControllerScript : MonoBehaviour
 					if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
 					{
 						sectorToRemove = sector;
-						instance.SectorsToGenerate.Remove(sector);
 						break;
 					}
 				}
 			}
 			if (sectorToRemove != null)
 			{
-				GameObject.Destroy(sectorToRemove.gameObject);
+				sectorToRemove.canBeUnloaded = true;
 			}
 		}
 	}

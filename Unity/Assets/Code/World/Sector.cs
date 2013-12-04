@@ -20,6 +20,12 @@ public class Sector : MonoBehaviour
 	
 	public Chunk[,,] chunks = new Chunk[WIDTH, HEIGHT, DEPTH];
 
+	public bool dirty = false;
+	public bool canBeUnloaded = false;
+
+	private const float MIN_SAVE_TIME = 300;
+	private float saveTimer;
+
 	public void init (int x, int y, int z)
 	{
 		xIndex = x;
@@ -27,6 +33,7 @@ public class Sector : MonoBehaviour
 		zIndex = z;
 
 		center = transform.position + new Vector3((WIDTH * Chunk.WIDTH) / 2, (HEIGHT * Chunk.HEIGHT) / 2, (DEPTH * Chunk.DEPTH) / 2);
+		saveTimer = Time.time;
 	}
 
 	public string fileName
@@ -34,6 +41,22 @@ public class Sector : MonoBehaviour
 		get 
 		{
 			return "Data/sector_" + xIndex + "_" + yIndex + "_" + zIndex + ".scs";
+		}
+	}
+
+	public void ActiveUpdate()
+	{
+		if (dirty && Time.time - saveTimer > MIN_SAVE_TIME) 
+		{
+			dirty = false;
+			saveTimer = Time.time;
+			Save();
+			Debug.Log(name);
+		}
+
+		foreach(Chunk chunk in chunks)
+		{
+			chunk.ActiveUpdate();
 		}
 	}
 
