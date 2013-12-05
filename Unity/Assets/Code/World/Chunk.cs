@@ -158,9 +158,8 @@ public class Chunk : MonoBehaviour
 	}
 
 	// Fuck Perlin.
-	public int[] PerlinBlock(int top, int bottom)
+	public int[] PerlinBlock(float xFreq, float zFreq, float xAmp, float zAmp, int top, int bottom)
 	{
-		float TerrainMax = WIDTH * Sector.WIDTH;
 		int[] blockData = new int[HEIGHT * DEPTH * WIDTH];
 		int pos = 0;
 		for (int y = HEIGHT - 1; y >= 0; y--)
@@ -169,20 +168,22 @@ public class Chunk : MonoBehaviour
 			{
 				for (int x = 0; x < WIDTH; x++)
 				{
-					float xPos = zIndex * WIDTH + x;
-					float yWorldPos = (((sector.yIndex * Sector.HEIGHT) + yIndex) * HEIGHT) + y;
-					float zPos = (zIndex * DEPTH) + z;
-					float xperlin = Mathf.PerlinNoise(xPos, Random.value + (top - bottom));
-					float zperlin = Mathf.PerlinNoise(zPos, Random.value + (top - bottom));
-					float cutOff = bottom + (((xperlin + zperlin) / 2) * (top - bottom));
+					float xWorldPos = (((TerrainControllerScript.WIDTH * sector.xIndex) + xIndex) * Chunk.WIDTH) + x;
+					float zWorldPos = (((TerrainControllerScript.DEPTH * sector.zIndex) + zIndex) * Chunk.DEPTH) + z;
+					float xPerlin = Mathf.PerlinNoise(xWorldPos, xFreq);
+					float zPerlin = Mathf.PerlinNoise(zWorldPos, zFreq);
 
-					if (yWorldPos <= cutOff / 6)
+					float cutOff = bottom + ((top - bottom) * ((xPerlin + zPerlin) / 2));
+					
+					float blocksHeight =  (((sector.yIndex * Sector.HEIGHT) + yIndex) * HEIGHT) + y;
+					
+					if (blocksHeight <= cutOff / 6)
 					{
 						blockData[pos++] = 1;
 					}
 					else
 					{
-						blockData[pos++] = (yWorldPos <= cutOff) ? 2: 0;
+						blockData[pos++] = (blocksHeight <= cutOff) ? 2: 0;
 					}
 				}
 			}

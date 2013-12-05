@@ -129,7 +129,7 @@ public class Sector : MonoBehaviour
 					
 					if (chunk != null)
 					{
-						chunk.SetBlockData(blockData);
+						chunk.SetBlockData(chunk.SinBlock(0.1f, 0.2f, 0.6f, 0.7f, 48, 16));//blockData);
 						chunk.GenerateGeometry();
 					}
 					
