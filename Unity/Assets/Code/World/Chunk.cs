@@ -28,14 +28,12 @@ public class Chunk : MonoBehaviour
 		
 	public bool dirty = false;
 
-	public void init(Sector sector, int[] blockData, int x, int y, int z)
+	public void init(Sector sector, int x, int y, int z)
 	{	
 		this.sector = sector;
 		xIndex = x;
 		yIndex = y;
 		zIndex = z;
-		SetBlockData(blockData);
-		GenerateGeometry();
 	}
 
 	public void ActiveUpdate()
@@ -74,7 +72,7 @@ public class Chunk : MonoBehaviour
 		return blockData;
 	}
 
-	private void SetBlockData(int[] blockData)
+	public void SetBlockData(int[] blockData)
 	{
 		int pos = 0;
 		for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
@@ -127,7 +125,7 @@ public class Chunk : MonoBehaviour
 		return blockData;
 	}
 
-	public int[] SinBlock(float xFreq, float zFreq, float xAmp, float zAmp)
+	public int[] SinBlock(float xFreq, float zFreq, float xAmp, float zAmp, int top, int bottom)
 	{
 		int[] blockData = new int[HEIGHT * DEPTH * WIDTH];
 		int pos = 0;
@@ -137,22 +135,61 @@ public class Chunk : MonoBehaviour
 			{
 				for (int x = 0; x < WIDTH; x++)
 				{
-					float xWorldPos = (transform.position.x * WIDTH) + x;
-					float zWorldPos = (transform.position.z * DEPTH) + z;
+					float xWorldPos = (((TerrainControllerScript.WIDTH * sector.xIndex) + xIndex) * Chunk.WIDTH) + x;
+					float zWorldPos = (((TerrainControllerScript.DEPTH * sector.zIndex) + zIndex) * Chunk.DEPTH) + z;
 					float xSin = ((Mathf.Sin(xWorldPos * xFreq) + 1)/2) * xAmp;
 					float zSin = ((Mathf.Sin(zWorldPos * zFreq) + 1)/2) * zAmp;
-					float cutOff = (xSin + zSin)/2;
+					float cutOff = bottom + ((top - bottom) * ((xSin + zSin)/2));
 
-					float blocksHeight = (transform.position.y * HEIGHT) + y;
-					float normalizedheight = blocksHeight / (Sector.HEIGHT * HEIGHT);
+					float blocksHeight =  (((sector.yIndex * Sector.HEIGHT) + yIndex) * HEIGHT) + y;
 
-					blockData[pos++] = (normalizedheight <= cutOff) ? 1: 0;
+					if (blocksHeight <= cutOff / 6)
+					{
+						blockData[pos++] = 1;
+					}
+					else
+					{
+						blockData[pos++] = (blocksHeight <= cutOff) ? 2: 0;
+					}
 				}
 			}
 		}
 		return blockData;
 	}
-	
+
+	// Fuck Perlin.
+	public int[] PerlinBlock(int top, int bottom)
+	{
+		float TerrainMax = WIDTH * Sector.WIDTH;
+		int[] blockData = new int[HEIGHT * DEPTH * WIDTH];
+		int pos = 0;
+		for (int y = HEIGHT - 1; y >= 0; y--)
+		{
+			for (int z = 0; z < DEPTH; z++)
+			{
+				for (int x = 0; x < WIDTH; x++)
+				{
+					float xPos = zIndex * WIDTH + x;
+					float yWorldPos = (((sector.yIndex * Sector.HEIGHT) + yIndex) * HEIGHT) + y;
+					float zPos = (zIndex * DEPTH) + z;
+					float xperlin = Mathf.PerlinNoise(xPos, Random.value + (top - bottom));
+					float zperlin = Mathf.PerlinNoise(zPos, Random.value + (top - bottom));
+					float cutOff = bottom + (((xperlin + zperlin) / 2) * (top - bottom));
+
+					if (yWorldPos <= cutOff / 6)
+					{
+						blockData[pos++] = 1;
+					}
+					else
+					{
+						blockData[pos++] = (yWorldPos <= cutOff) ? 2: 0;
+					}
+				}
+			}
+		}
+		return blockData;
+	}
+
 	public bool IsBlockEmpty(int x, int y, int z)
 	{	
 		return (x < 0 || x >= WIDTH ||

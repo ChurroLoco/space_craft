@@ -15,7 +15,7 @@ public class GameControllerScript : MonoBehaviour
 
 	void SpawnPlayer()
 	{
-		PlayerScript.Spawn(new Vector3(16, 12, 16));
+		PlayerScript.Spawn(new Vector3(16, 63, 16));
 	}
 	
 	void OnApplicationFocus(bool focusStatus) 

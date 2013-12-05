@@ -86,6 +86,7 @@ public class Sector : MonoBehaviour
 							chunkObject.transform.localPosition = new Vector3(x * Chunk.WIDTH, y * Chunk.HEIGHT, z * Chunk.DEPTH);
 							chunkObject.name = string.Format("Chunk [{0},{1},{2}]", x, y, z);
 							Chunk chunkScript = chunkObject.GetComponent<Chunk>();
+							chunkScript.init(this, x, y, z);
 							chunks[x, y, z] = chunkScript;
 						}
 					}
@@ -128,7 +129,8 @@ public class Sector : MonoBehaviour
 					
 					if (chunk != null)
 					{
-						chunk.init(this, blockData, x, y, z);
+						chunk.SetBlockData(blockData);
+						chunk.GenerateGeometry();
 					}
 					
 					yield return new WaitForSeconds(0.02f);
@@ -167,7 +169,7 @@ public class Sector : MonoBehaviour
 						if (create)
 						{
 							// In the future, we do seed generation here...
-							blockdata = chunk.SinBlock(0.3f, 0.6f, 0.7f, 0.3f);
+							blockdata = chunk.SinBlock(0.1f, 0.2f, 0.6f, 0.7f, 48, 16);
 						}
 						else
 						{

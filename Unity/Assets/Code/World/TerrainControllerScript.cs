@@ -23,7 +23,7 @@ public class TerrainControllerScript : MonoBehaviour
 	void Start()
 	{
 		instance = this;
-		LoadSector(0 ,0, 0);
+		LoadSector(0 ,1, 0);
 	}
 
 	void Update()
@@ -67,7 +67,7 @@ public class TerrainControllerScript : MonoBehaviour
 	// Loads a sector and puts it on a list to generate when ready.
 	public static void LoadSector(int x, int y, int z)
 	{
-		bool canLoad = true;
+		bool alreadyExists = false;
 		if (x >= 0 && x <= WIDTH &&
 		    y >= 0 && y <= HEIGHT &&
 		    z >= 0 && z <= DEPTH)
@@ -76,27 +76,40 @@ public class TerrainControllerScript : MonoBehaviour
 			{
 				if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
 				{
-					canLoad = false;
+					// The sector exists, ensure it isn't unloaded because we need it now.
+					sector.canBeUnloaded = false;
+					alreadyExists = true;
 					break;
 				}
 			}
-			if (canLoad)
+			if (!alreadyExists)
 			{
 				foreach (Sector sector in instance.SectorsToGenerate)
 				{
 					if (sector.xIndex == x  && sector.yIndex == y && sector.zIndex == z)
 					{
-						canLoad = false;
+						// The sector exists, ensure it isn't unloaded because we need it now.
+						sector.canBeUnloaded = false;
+						alreadyExists = true;
 						break;
 					}
 				}
 
-				if (canLoad)
+				if (!alreadyExists)
 				{
-					Sector sector = instance.InstantiateSector(x, y, z);
-					if (sector != null)
+					if (instance.loadingSector != null && instance.loadingSector.xIndex == x && instance.loadingSector.yIndex == y && instance.loadingSector.zIndex == z)
 					{
-						instance.SectorsToGenerate.Add(sector);
+						// Ensure our new sector does not unload once it is finished generating.
+						instance.loadingSector.canBeUnloaded = false;
+					}
+					else
+					{
+						/// The new sector does not exist anywhere. Create it.
+						Sector sector = instance.InstantiateSector(x, y, z);
+						if (sector != null)
+						{
+							instance.SectorsToGenerate.Add(sector);
+						}
 					}
 				}
 			}
@@ -132,6 +145,10 @@ public class TerrainControllerScript : MonoBehaviour
 						break;
 					}
 				}
+			}
+			if (instance.loadingSector.xIndex == x && instance.loadingSector.yIndex == y && instance.loadingSector.zIndex == z)
+			{
+				sectorToRemove = instance.loadingSector;
 			}
 			if (sectorToRemove != null)
 			{
