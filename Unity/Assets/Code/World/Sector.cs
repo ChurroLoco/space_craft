@@ -108,7 +108,7 @@ public class Sector : MonoBehaviour
 			Directory.CreateDirectory(filePath);
 		}
 		// Now populate the newly initialized chunks with data from a save file.
-		if (true)//!File.Exists(filePath +"/"+ fileName))
+		if (!File.Exists(filePath +"/"+ fileName))
 		{
 			// Stupid, but effective!
 			Save(true);

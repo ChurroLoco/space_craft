@@ -18,6 +18,8 @@ public class TerrainControllerScript : MonoBehaviour
 
 	public Sector loadingSector = null;
 
+	private const int ACTIVE_SECTOR_LIMIT = 50;
+
 	public static TerrainControllerScript instance { get; private set; }
 
 	void Start()
@@ -28,6 +30,7 @@ public class TerrainControllerScript : MonoBehaviour
 
 	void Update()
 	{
+		// Load Sectors that are Waiting.
 		if (loadingSector == null && SectorsToGenerate.Count > 0)
 		{
 			// Generate or Unload the top sector in the list.
@@ -45,13 +48,14 @@ public class TerrainControllerScript : MonoBehaviour
 			
 		}
 
+		// Handle Active Sector Logic.
 		for (int i = 0; i < activeSectors.Count; i++)
 		{
 			Sector sector = activeSectors[i];
 			sector.ActiveUpdate();
 
 			// Handle Unloading Logic.
-			if (sector.canBeUnloaded)
+			if (sector.canBeUnloaded && activeSectors.Count > ACTIVE_SECTOR_LIMIT)
 			{
 				if (sector.dirty)
 				{
