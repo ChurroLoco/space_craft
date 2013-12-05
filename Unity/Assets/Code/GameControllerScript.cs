@@ -15,7 +15,8 @@ public class GameControllerScript : MonoBehaviour
 
 	void SpawnPlayer()
 	{
-		PlayerScript.Spawn(new Vector3(16, 63, 16));
+		float CenterOfTheEarth = (TerrainControllerScript.WIDTH * Sector.WIDTH * Chunk.WIDTH) / 2;
+		PlayerScript.Spawn(new Vector3(CenterOfTheEarth, 63, CenterOfTheEarth));
 	}
 	
 	void OnApplicationFocus(bool focusStatus) 
