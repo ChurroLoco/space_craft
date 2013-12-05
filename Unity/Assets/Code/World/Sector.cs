@@ -129,7 +129,7 @@ public class Sector : MonoBehaviour
 					
 					if (chunk != null)
 					{
-						chunk.SetBlockData(chunk.SinBlock(0.1f, 0.2f, 0.6f, 0.7f, 48, 16));//blockData);
+						chunk.SetBlockData(blockData);
 						chunk.GenerateGeometry();
 					}
 					
@@ -169,7 +169,7 @@ public class Sector : MonoBehaviour
 						if (create)
 						{
 							// In the future, we do seed generation here...
-							blockdata = chunk.SinBlock(0.1f, 0.2f, 0.6f, 0.7f, 48, 16);
+							blockdata = chunk.PerlinBlock(24, 96);//chunk.SinBlock(0.1f, 0.2f, 0.6f, 0.7f, 48, 16);
 						}
 						else
 						{

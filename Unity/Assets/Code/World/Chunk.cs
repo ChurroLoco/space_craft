@@ -158,7 +158,7 @@ public class Chunk : MonoBehaviour
 	}
 
 	// Fuck Perlin.
-	public int[] PerlinBlock(float xFreq, float zFreq, float xAmp, float zAmp, int top, int bottom)
+	public int[] PerlinBlock(int top, int bottom)
 	{
 		int[] blockData = new int[HEIGHT * DEPTH * WIDTH];
 		int pos = 0;
@@ -168,23 +168,45 @@ public class Chunk : MonoBehaviour
 			{
 				for (int x = 0; x < WIDTH; x++)
 				{
-					float xWorldPos = (((TerrainControllerScript.WIDTH * sector.xIndex) + xIndex) * Chunk.WIDTH) + x;
-					float zWorldPos = (((TerrainControllerScript.DEPTH * sector.zIndex) + zIndex) * Chunk.DEPTH) + z;
-					float xPerlin = Mathf.PerlinNoise(xWorldPos, xFreq);
-					float zPerlin = Mathf.PerlinNoise(zWorldPos, zFreq);
+					float xWorldPos = (((Sector.WIDTH * sector.xIndex) + xIndex) * Chunk.WIDTH) + x;
+					float yWorldPos =  (((Sector.HEIGHT * sector.yIndex) + yIndex) * Chunk.HEIGHT) + y;
+					float zWorldPos = (((Sector.DEPTH * sector.zIndex) + zIndex) * Chunk.DEPTH) + z;
 
-					float cutOff = bottom + ((top - bottom) * ((xPerlin + zPerlin) / 2));
-					
-					float blocksHeight =  (((sector.yIndex * Sector.HEIGHT) + yIndex) * HEIGHT) + y;
-					
-					if (blocksHeight <= cutOff / 6)
+					float xPerlin = Mathf.PerlinNoise((xWorldPos * 0.65f) / (HEIGHT * Sector.HEIGHT), (zWorldPos * 0.65f)/ (DEPTH * Sector.DEPTH));
+					float zPerlin = Mathf.PerlinNoise((zWorldPos * 0.65f)/ (DEPTH * Sector.DEPTH), (xWorldPos * 0.65f) / (HEIGHT * Sector.HEIGHT));
+
+					float topCutOff = bottom + ((top - bottom) * xPerlin);
+					float bottomCutOff = (bottom * 0.75f) + ((top - bottom) * zPerlin);
+					if (yWorldPos <= topCutOff)
 					{
-						blockData[pos++] = 1;
+						if (yWorldPos <= (topCutOff * 0.15f))
+						{
+							blockData[pos] = 1;
+						}
+						else if (yWorldPos <= bottomCutOff)
+						{
+							blockData[pos] = 5;
+						}
+						else
+						{
+							blockData[pos] = 2;
+						}
+
 					}
 					else
 					{
-						blockData[pos++] = (blocksHeight <= cutOff) ? 2: 0;
+						blockData[pos] = 0;
 					}
+
+					// Subtraction pass for caves.
+					topCutOff = (bottom * 0.6f) + (((top - bottom) * 0.5f) * (1 - zPerlin)); 
+					bottomCutOff = (bottom * 0.7f) + (((top - bottom)) * (1 - xPerlin)); 
+
+					if (yWorldPos < topCutOff && yWorldPos > bottomCutOff)
+					{
+						blockData[pos] = 0;
+					}
+					pos++;
 				}
 			}
 		}
