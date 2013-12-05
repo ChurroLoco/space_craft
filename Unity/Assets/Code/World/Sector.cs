@@ -26,6 +26,9 @@ public class Sector : MonoBehaviour
 	private const float MIN_SAVE_TIME = 300;
 	private float saveTimer;
 
+	// Data to be stored in the sector's block data file. Used for generating varied terrain.
+	public SectorTerrainData terrainData;
+
 	public void init (int x, int y, int z)
 	{
 		xIndex = x;
@@ -105,7 +108,7 @@ public class Sector : MonoBehaviour
 			Directory.CreateDirectory(filePath);
 		}
 		// Now populate the newly initialized chunks with data from a save file.
-		if (!File.Exists(filePath +"/"+ fileName))
+		if (true)//!File.Exists(filePath +"/"+ fileName))
 		{
 			// Stupid, but effective!
 			Save(true);
@@ -169,7 +172,7 @@ public class Sector : MonoBehaviour
 						if (create)
 						{
 							// In the future, we do seed generation here...
-							blockdata = chunk.PerlinBlock(24, 96);//chunk.SinBlock(0.1f, 0.2f, 0.6f, 0.7f, 48, 16);
+							blockdata = TerrainGenerator.PerlinBlock(chunk, 24, 80, 0.5f);//chunk.SinBlock(0.1f, 0.2f, 0.6f, 0.7f, 48, 16);
 						}
 						else
 						{
