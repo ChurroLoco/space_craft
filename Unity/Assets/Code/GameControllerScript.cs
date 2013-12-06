@@ -10,7 +10,7 @@ public class GameControllerScript : MonoBehaviour
 	{
 		BlockType.InitializeFromFile();
 		Debug.Log(string.Format("BlockTypes imported count: '{0}'.", BlockType.All.Count));
-		Invoke("SpawnPlayer", 3);
+		SpawnPlayer();
 	}
 
 	void SpawnPlayer()

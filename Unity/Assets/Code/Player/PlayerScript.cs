@@ -19,7 +19,7 @@ public class PlayerScript : MonoBehaviour
 	private Sector previousSector = null;
 
 	[SerializeField]
-	private int selectedBlockTypeId = 1;
+	private int selectedBlockTypeId = 0;
 
 	public static PlayerScript Spawn(Vector3 position)
 	{
@@ -225,8 +225,8 @@ public class PlayerScript : MonoBehaviour
 
 	void OnGUI()
 	{
-		GUILayout.Label(string.Format("World Position: {0}", transform.position.ToString()));
-		GUILayout.Label(string.Format("Selected Block Type: {0}", BlockType.All[selectedBlockTypeId].Name));
+		//GUILayout.Label(string.Format("World Position: {0}", transform.position.ToString()));
+		//GUILayout.Label(string.Format("Selected Block Type: {0}", BlockType.All[selectedBlockTypeId].Name));
 
 	}
 }

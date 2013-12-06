@@ -152,7 +152,7 @@ public class Sector : MonoBehaviour
 
 	public IEnumerator setBlockData(int[] blockData)
 	{
-		// Now read our block data.
+		int pos = 0;
 		for (int y = HEIGHT - 1; y >= 0; y--)
 		{
 			for (int z = 0; z < DEPTH; z++)
@@ -161,9 +161,14 @@ public class Sector : MonoBehaviour
 				{
 					// Read A Chunk's BlockData out one chunk at a time.
 					Chunk chunk = chunks[x,y,z];
+					int[] chunkData = new int[Chunk.WIDTH * Chunk.HEIGHT * Chunk.DEPTH];
+					for (int i = 0; i < chunkData.Length; i++)
+					{
+						chunkData[i] = blockData[pos++];
+					}
 					if (chunk != null)
 					{
-						chunk.SetBlockData(blockData);
+						chunk.SetBlockData(chunkData);
 						chunk.GenerateGeometry();
 					}
 					

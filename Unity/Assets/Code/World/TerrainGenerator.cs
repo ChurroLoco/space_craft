@@ -5,7 +5,7 @@ using System.IO;
 public class TerrainGenerator
 {
 	// The id of the terrain. Change this to tell the world to regenerate terrain.
-	public const int REVISION_ID = 0;
+	public const int REVISION_ID = 12;
 
 
 	// Big function that sets the blocks in an entire sector.
@@ -22,7 +22,7 @@ public class TerrainGenerator
 		tData[3] = GetTData(sector.xIndex, sector.yIndex, sector.zIndex - 1, 3);
 
 		// Now read our block data.
-		for (int y = Sector.HEIGHT - 1; y >= 0; y--)
+		for (int y = Sector.HEIGHT - 1; y >= 0; y--) 
 		{
 			for (int z = 0; z < Sector.DEPTH; z++)
 			{
@@ -32,9 +32,15 @@ public class TerrainGenerator
 					if (chunk != null)
 					{
 						// TODO: Remake Perlin to use the Sector border Freqs.
-						int[] chunkData = FillBlocks();//PerlinBlock(chunk, 80, 16, 1);
-						chunkData.CopyTo(blockData, pos);
-						pos += chunkData.Length;
+						int[] chunkData = PerlinBlock(chunk, 80, 16, 1);
+						for (int i = pos; i < chunkData.Length; i++)
+						{
+							blockData[pos++] = chunkData[i];
+						}
+					}
+					else
+					{
+						Debug.Log("Fuck");
 					}
 				}
 			}
@@ -79,6 +85,61 @@ public class TerrainGenerator
 	}
 
 
+
+	public static int[] PerlinBlock(Chunk chunk, int top, int bottom, float freq)
+	{
+		int[] blockData = new int[Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
+		int pos = 0;
+		for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
+		{
+			for (int z = 0; z < Chunk.DEPTH; z++)
+			{
+				for (int x = 0; x < Chunk.WIDTH; x++)
+				{
+					float xWorldPos = (((Sector.WIDTH * chunk.sector.xIndex) + chunk.xIndex) * Chunk.WIDTH) + x;
+					float yWorldPos =  (((Sector.HEIGHT * chunk.sector.yIndex) + chunk.yIndex) * Chunk.HEIGHT) + y;
+					float zWorldPos = (((Sector.DEPTH * chunk.sector.zIndex) + chunk.zIndex) * Chunk.DEPTH) + z;
+					
+					float xPerlin = Mathf.PerlinNoise((xWorldPos * freq) / (Chunk.HEIGHT * Sector.HEIGHT), (zWorldPos * freq)/ (Chunk.DEPTH * Sector.DEPTH));
+					float zPerlin = Mathf.PerlinNoise((zWorldPos * freq)/ (Chunk.DEPTH * Sector.DEPTH), (xWorldPos * freq) / (Chunk.HEIGHT * Sector.HEIGHT));
+					
+					float topCutOff = bottom + ((top - bottom) * xPerlin);
+					//float bottomCutOff = (bottom * 0.75f) + ((top - bottom) * zPerlin);
+					if (yWorldPos <= topCutOff)
+					{
+						if (yWorldPos <= (topCutOff * 0.15f))
+						{
+							blockData[pos] = 1;
+						}
+						//else if (yWorldPos <= bottomCutOff)
+						//{
+						//	blockData[pos] = 5;
+						//}
+						else
+						{
+							blockData[pos] = 2;
+						}
+						
+					}
+					else
+					{
+						blockData[pos] = 0;
+					}
+					
+					//// Subtraction pass for caves.
+					//topCutOff = (bottom * 0.55f) + (((top - bottom) * 0.5f) * (1 - zPerlin)); 
+					//bottomCutOff = (bottom * 0.7f) + (((top - bottom)) * (1 - xPerlin)); 
+					
+					//if (yWorldPos < topCutOff && yWorldPos > bottomCutOff)
+					//{
+					//	blockData[pos] = 0;
+					//}
+					pos++;
+				}
+			}
+		}
+		return blockData;
+	}
 
 
 
@@ -131,63 +192,8 @@ public class TerrainGenerator
 		}
 		return blockData;
 	}
-
-	
-	public static int[] PerlinBlock(Chunk chunk, int top, int bottom, float freq)
-	{
-		int[] blockData = new int[Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
-		int pos = 0;
-		for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
-		{
-			for (int z = 0; z < Chunk.DEPTH; z++)
-			{
-				for (int x = 0; x < Chunk.WIDTH; x++)
-				{
-					float xWorldPos = (((Sector.WIDTH * chunk.sector.xIndex) + chunk.xIndex) * Chunk.WIDTH) + x;
-					float yWorldPos =  (((Sector.HEIGHT * chunk.sector.yIndex) + chunk.yIndex) * Chunk.HEIGHT) + y;
-					float zWorldPos = (((Sector.DEPTH * chunk.sector.zIndex) + chunk.zIndex) * Chunk.DEPTH) + z;
-					
-					float xPerlin = Mathf.PerlinNoise((xWorldPos * freq) / (Chunk.HEIGHT * Sector.HEIGHT), (zWorldPos * freq)/ (Chunk.DEPTH * Sector.DEPTH));
-					float zPerlin = Mathf.PerlinNoise((zWorldPos * freq)/ (Chunk.DEPTH * Sector.DEPTH), (xWorldPos * freq) / (Chunk.HEIGHT * Sector.HEIGHT));
-					
-					float topCutOff = bottom + ((top - bottom) * xPerlin);
-					float bottomCutOff = (bottom * 0.75f) + ((top - bottom) * zPerlin);
-					if (yWorldPos <= topCutOff)
-					{
-						if (yWorldPos <= (topCutOff * 0.15f))
-						{
-							blockData[pos] = 1;
-						}
-						else if (yWorldPos <= bottomCutOff)
-						{
-							blockData[pos] = 5;
-						}
-						else
-						{
-							blockData[pos] = 2;
-						}
-						
-					}
-					else
-					{
-						blockData[pos] = 0;
-					}
-					
-					// Subtraction pass for caves.
-					topCutOff = (bottom * 0.55f) + (((top - bottom) * 0.5f) * (1 - zPerlin)); 
-					bottomCutOff = (bottom * 0.7f) + (((top - bottom)) * (1 - xPerlin)); 
-					
-					if (yWorldPos < topCutOff && yWorldPos > bottomCutOff)
-					{
-						blockData[pos] = 0;
-					}
-					pos++;
-				}
-			}
-		}
-		return blockData;
-	}
 }
+
 
 public class SectorTerrainData
 {

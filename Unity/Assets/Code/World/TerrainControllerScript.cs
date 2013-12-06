@@ -25,7 +25,7 @@ public class TerrainControllerScript : MonoBehaviour
 	void Start()
 	{
 		instance = this;
-		LoadSector(0 ,1, 0);
+		Debug.Log("Logging sector data to: " + Application.persistentDataPath + "/secdata");
 	}
 
 	void Update()
