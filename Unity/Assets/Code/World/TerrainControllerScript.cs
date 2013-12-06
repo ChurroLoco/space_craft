@@ -48,6 +48,8 @@ public class TerrainControllerScript : MonoBehaviour
 			
 		}
 
+		Queue<Sector> sectorsToUnload = new Queue<Sector>();
+
 		// Handle Active Sector Logic.
 		for (int i = 0; i < activeSectors.Count; i++)
 		{
@@ -57,13 +59,31 @@ public class TerrainControllerScript : MonoBehaviour
 			// Handle Unloading Logic.
 			if (sector.canBeUnloaded && activeSectors.Count > ACTIVE_SECTOR_LIMIT)
 			{
-				if (sector.dirty)
+				sectorsToUnload.Enqueue(sector);
+			}
+		}
+
+		// Unload all waiting sectors and any loaded sectors in their column that can also be removed.
+		while (sectorsToUnload.Count > 0)
+		{
+			Sector sectorToUnload = sectorsToUnload.Dequeue();
+			int x = sectorToUnload.xIndex;
+			int z = sectorToUnload.zIndex;
+			for (int i = 0; i < activeSectors.Count; i++)
+			{
+				Sector sector = activeSectors[i];
+
+				if (sector.canBeUnloaded && sector.xIndex == x && sector.zIndex == z)
 				{
-					sector.Save();
+					if (sector.dirty)
+					{
+						sector.Save();
+					}
+
+					activeSectors.Remove(sector);
+					GameObject.Destroy(sector.gameObject);
+					i--;
 				}
-				activeSectors.RemoveAt(i);
-				GameObject.Destroy(sector.gameObject);
-				i--;
 			}
 		}
 	}
@@ -199,6 +219,8 @@ public class TerrainControllerScript : MonoBehaviour
 		}
 		loadingSector = null;
 	}
+
+
 
 
 	public static Sector GetSectorAt(Vector3 position)

@@ -36,6 +36,7 @@ public class Sector : MonoBehaviour
 		zIndex = z;
 
 		center = transform.position + new Vector3((WIDTH * Chunk.WIDTH) / 2, (HEIGHT * Chunk.HEIGHT) / 2, (DEPTH * Chunk.DEPTH) / 2);
+		terrainData = new SectorTerrainData();
 		saveTimer = Time.time + MIN_SAVE_TIME;
 	}
 
@@ -72,6 +73,7 @@ public class Sector : MonoBehaviour
 
 	public IEnumerator Generate()
 	{
+		// Instantiate the Chunks.
 		Object resource = Resources.Load(CHUNK_PREFAB_PATH);
 		
 		for (int y = HEIGHT - 1; y >= 0; y--)
@@ -102,20 +104,55 @@ public class Sector : MonoBehaviour
 			}
 		}
 
-		// Create the folder if we don't have one made.
+		// Load the Sector data and generate the chunks with it.
 		if (!Directory.Exists(filePath))
 		{
 			Directory.CreateDirectory(filePath);
 		}
-		// Now populate the newly initialized chunks with data from a save file.
 		if (!File.Exists(filePath +"/"+ fileName))
 		{
-			// Stupid, but effective!
-			Save(true);
+			// If this is a new sector, generate it some new sector data.
+			Save(TerrainGenerator.GenerateSector(this));
 		}
+
 		Stream stream = File.Open(filePath +"/"+ fileName, FileMode.Open);
 		BinaryReader bReader = new BinaryReader(stream);
+
+		int[] blockData = new int[Sector.HEIGHT * Sector.DEPTH * Sector.WIDTH * Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
+
+		// Get our terrain version.
+		int tVersion = bReader.ReadInt32();
+		if (tVersion == TerrainGenerator.REVISION_ID)
+		{
+			// Get the rest of our terrainData data.
+			float[] tData = new float[4];
+			for (int q = 0; q < 4; q++)
+			{
+				tData[q] = bReader.ReadSingle();
+			}
+			terrainData.setData(tData);
+
+			// get our blockData;
+			for (int i = 0; i < blockData.Length; i++)
+			{
+				blockData[i] = (int)bReader.ReadUInt16();
+			}
+		}
+		else
+		{
+			blockData = TerrainGenerator.GenerateSector(this);
+		}
+		bReader.Close();
+
+		StartCoroutine(setBlockData(blockData));
 		
+		TerrainControllerScript.instance.ActivateSector(this);
+		Debug.Log("Finished Generating " + name);
+	}
+
+	public IEnumerator setBlockData(int[] blockData)
+	{
+		// Now read our block data.
 		for (int y = HEIGHT - 1; y >= 0; y--)
 		{
 			for (int z = 0; z < DEPTH; z++)
@@ -124,12 +161,6 @@ public class Sector : MonoBehaviour
 				{
 					// Read A Chunk's BlockData out one chunk at a time.
 					Chunk chunk = chunks[x,y,z];
-					int[] blockData = new int[Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
-					for (int i = 0; i < blockData.Length; i++)
-					{
-						blockData[i] = (int)bReader.ReadUInt16();
-					}
-					
 					if (chunk != null)
 					{
 						chunk.SetBlockData(blockData);
@@ -140,14 +171,10 @@ public class Sector : MonoBehaviour
 				}
 			}
 		}
-		bReader.Close();
-
-		TerrainControllerScript.instance.ActivateSector(this);
-		Debug.Log("Finished Generating " + name);
 	}
 
 	// Savse the block data of a sector.
-	public void Save(bool create = false)
+	public void Save(int[] newData = null)
 	{
 		// Create the folder if we don't have one made.
 		if (!Directory.Exists(filePath))
@@ -158,43 +185,55 @@ public class Sector : MonoBehaviour
 		Stream stream = File.Open(filePath +"/"+ fileName, FileMode.Create);
 		BinaryWriter bWriter = new BinaryWriter(stream);
 
-		for (int y = HEIGHT - 1; y >= 0; y--)
+		// First, save our terrainData
+		bWriter.Write(terrainData.terrainVersion);
+		float[] tData = terrainData.getData();
+		for (int q = 0; q < 4; q++)
 		{
-			for (int z = 0; z < DEPTH; z++)
+			bWriter.Write(tData[q]);
+		}
+
+		// Now, save our block data.
+		if (newData == null)
+		{
+			for (int y = HEIGHT - 1; y >= 0; y--)
 			{
-				for (int x = 0; x < WIDTH; x++)
+				for (int z = 0; z < DEPTH; z++)
 				{
-					// Save out Data one Chunk at a time.
-					int[] blockdata;
-					Chunk chunk = chunks[x,y,z];
-					if (chunk != null)
+					for (int x = 0; x < WIDTH; x++)
 					{
-						if (create)
-						{
-							// In the future, we do seed generation here...
-							blockdata = TerrainGenerator.PerlinBlock(chunk, 24, 80, 0.5f);//chunk.SinBlock(0.1f, 0.2f, 0.6f, 0.7f, 48, 16);
-						}
-						else
+						// Data is saved by chunk.
+						int[] blockdata;
+						Chunk chunk = chunks[x,y,z];
+						if (chunk != null)
 						{
 							blockdata = chunk.GetBlockData();
 						}
-					}
-					else
-					{
-						// create a blank Chunk.
-						blockdata = new int[Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
-					}
+						else
+						{
+							// create a blank Chunk data file.
+							blockdata = new int[Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
+						}
 
-					// Write the chunk's BlockData to the file.
-					for (int i = 0; i < blockdata.Length; i++)
-					{
-						bWriter.Write((ushort)blockdata[i]);
+						// Write the chunk's BlockData to the file.
+						for (int i = 0; i < blockdata.Length; i++)
+						{
+							bWriter.Write((ushort)blockdata[i]);
+						}
 					}
 				}
 			}
 		}
+		else
+		{
+			// Overwrite the file with our new data.
+			for(int i = 0; i < newData.Length; i++)
+			{
+				bWriter.Write((ushort)newData[i]);
+			}
+		}
 		bWriter.Close();
-		Debug.Log(name + " has been " + (create ? "created." : "updated."));
+		Debug.Log(name + " has been saved");
 	}
 
 
