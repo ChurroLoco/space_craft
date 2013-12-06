@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class TerrainControllerScript : MonoBehaviour
 {
 	public const int WIDTH = 999;
-	public const int HEIGHT = 999;
+	public const int HEIGHT = 8; // 256 blocks high.
 	public const int DEPTH = 999;
 
 	const string SECTOR_PREFAB_PATH = "Prefabs/Sector";
@@ -18,7 +18,7 @@ public class TerrainControllerScript : MonoBehaviour
 
 	public Sector loadingSector = null;
 
-	private const int ACTIVE_SECTOR_LIMIT = 50;
+	private const int ACTIVE_SECTOR_LIMIT = 40;
 
 	public static TerrainControllerScript instance { get; private set; }
 
@@ -48,7 +48,7 @@ public class TerrainControllerScript : MonoBehaviour
 			
 		}
 
-		Queue<Sector> sectorsToUnload = new Queue<Sector>();
+		Sector sectorToUnload = null;
 
 		// Handle Active Sector Logic.
 		for (int i = 0; i < activeSectors.Count; i++)
@@ -57,16 +57,15 @@ public class TerrainControllerScript : MonoBehaviour
 			sector.ActiveUpdate();
 
 			// Handle Unloading Logic.
-			if (sector.canBeUnloaded && activeSectors.Count > ACTIVE_SECTOR_LIMIT)
+			if (sectorToUnload == null && sector.canBeUnloaded && activeSectors.Count > ACTIVE_SECTOR_LIMIT)
 			{
-				sectorsToUnload.Enqueue(sector);
+				sectorToUnload = sector;
 			}
 		}
 
 		// Unload all waiting sectors and any loaded sectors in their column that can also be removed.
-		while (sectorsToUnload.Count > 0)
+		if (sectorToUnload != null)
 		{
-			Sector sectorToUnload = sectorsToUnload.Dequeue();
 			int x = sectorToUnload.xIndex;
 			int z = sectorToUnload.zIndex;
 			for (int i = 0; i < activeSectors.Count; i++)

@@ -50,11 +50,11 @@ public class Chunk : MonoBehaviour
 	{
 		int[] blockData = new int[HEIGHT * DEPTH * WIDTH];
 		int pos = 0;
-		for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
+		for (int x = 0; x < Chunk.WIDTH; x++)
 		{
 			for (int z = 0; z < Chunk.DEPTH; z++)
 			{
-				for (int x = 0; x < Chunk.WIDTH; x++)
+				for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
 				{
 					if (blocks[x,y,z] != null && blocks[x,y,z].type != null)
 					{
@@ -75,11 +75,11 @@ public class Chunk : MonoBehaviour
 	public void SetBlockData(int[] blockData)
 	{
 		int pos = 0;
-		for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
+		for (int x = 0; x < Chunk.WIDTH; x++)
 		{
 			for (int z = 0; z < Chunk.DEPTH; z++)
 			{
-				for (int x = 0; x < Chunk.WIDTH; x++)
+				for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
 				{
 					// For Each Block Within Each Chunk.
 					if (blockData[pos] > 0)
@@ -130,11 +130,11 @@ public class Chunk : MonoBehaviour
 		List<Vector2> newChunkUVs = new List<Vector2>(WIDTH * HEIGHT * DEPTH);
 		List<int> newChunkTrianlges = new List<int>();
 		
-		for (int y = HEIGHT - 1; y >= 0; y--)
+		for (int x = 0; x < WIDTH; x++)
 		{
 			for (int z = 0; z < DEPTH; z++)
 			{
-				for (int x = 0; x < WIDTH; x++)
+				for (int y = HEIGHT - 1; y >= 0; y--)
 				{
 					if (IsBlockFilled(x, y, z))
 					{

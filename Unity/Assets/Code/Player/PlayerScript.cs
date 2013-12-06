@@ -19,7 +19,7 @@ public class PlayerScript : MonoBehaviour
 	private Sector previousSector = null;
 
 	[SerializeField]
-	private int selectedBlockTypeId = 0;
+	private int selectedBlockTypeId = 1;
 
 	public static PlayerScript Spawn(Vector3 position)
 	{

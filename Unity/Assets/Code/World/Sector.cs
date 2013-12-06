@@ -55,6 +55,14 @@ public class Sector : MonoBehaviour
 		}
 	}
 
+	public string tDataFileName
+	{
+		get
+		{
+			return string.Format("tData_{0}_{1}.scs", xIndex, zIndex);
+		}
+	}
+
 	public void ActiveUpdate()
 	{
 		if (dirty && Time.time > saveTimer) 
@@ -76,11 +84,11 @@ public class Sector : MonoBehaviour
 		// Instantiate the Chunks.
 		Object resource = Resources.Load(CHUNK_PREFAB_PATH);
 		
-		for (int y = HEIGHT - 1; y >= 0; y--)
+		for (int x = 0; x < WIDTH; x++)
 		{
 			for (int z = 0; z < DEPTH; z++)
 			{
-				for (int x = 0; x < WIDTH; x++)
+				for (int y = HEIGHT - 1; y >= 0; y--)
 				{
 					if (resource != null)
 					{
@@ -104,11 +112,15 @@ public class Sector : MonoBehaviour
 			}
 		}
 
-		// Load the Sector data and generate the chunks with it.
+		int[] blockData = new int[Sector.HEIGHT * Sector.DEPTH * Sector.WIDTH * Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
+
 		if (!Directory.Exists(filePath))
 		{
 			Directory.CreateDirectory(filePath);
 		}
+
+		terrainData.Load(filePath, tDataFileName);
+		// Attempt to load our fileData;
 		if (!File.Exists(filePath +"/"+ fileName))
 		{
 			// If this is a new sector, generate it some new sector data.
@@ -118,31 +130,13 @@ public class Sector : MonoBehaviour
 		Stream stream = File.Open(filePath +"/"+ fileName, FileMode.Open);
 		BinaryReader bReader = new BinaryReader(stream);
 
-		int[] blockData = new int[Sector.HEIGHT * Sector.DEPTH * Sector.WIDTH * Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
-
-		// Get our terrain version.
-		int tVersion = bReader.ReadInt32();
-		if (tVersion == TerrainGenerator.REVISION_ID)
+		// get our blockData;
+		for (int i = 0; i < blockData.Length; i++)
 		{
-			// Get the rest of our terrainData data.
-			float[] tData = new float[4];
-			for (int q = 0; q < 4; q++)
-			{
-				tData[q] = bReader.ReadSingle();
-			}
-			terrainData.setData(tData);
-
-			// get our blockData;
-			for (int i = 0; i < blockData.Length; i++)
-			{
-				blockData[i] = (int)bReader.ReadUInt16();
-			}
-		}
-		else
-		{
-			blockData = TerrainGenerator.GenerateSector(this);
+			blockData[i] = (int)bReader.ReadUInt16();
 		}
 		bReader.Close();
+
 
 		StartCoroutine(setBlockData(blockData));
 		
@@ -153,11 +147,11 @@ public class Sector : MonoBehaviour
 	public IEnumerator setBlockData(int[] blockData)
 	{
 		int pos = 0;
-		for (int y = HEIGHT - 1; y >= 0; y--)
+		for (int x = 0; x < WIDTH; x++)
 		{
 			for (int z = 0; z < DEPTH; z++)
 			{
-				for (int x = 0; x < WIDTH; x++)
+				for (int y = HEIGHT - 1; y >= 0; y--)
 				{
 					// Read A Chunk's BlockData out one chunk at a time.
 					Chunk chunk = chunks[x,y,z];
@@ -172,7 +166,7 @@ public class Sector : MonoBehaviour
 						chunk.GenerateGeometry();
 					}
 					
-					yield return new WaitForSeconds(0.02f);
+					yield return new WaitForSeconds(0.01f);
 				}
 			}
 		}
@@ -190,22 +184,14 @@ public class Sector : MonoBehaviour
 		Stream stream = File.Open(filePath +"/"+ fileName, FileMode.Create);
 		BinaryWriter bWriter = new BinaryWriter(stream);
 
-		// First, save our terrainData
-		bWriter.Write(terrainData.terrainVersion);
-		float[] tData = terrainData.getData();
-		for (int q = 0; q < 4; q++)
-		{
-			bWriter.Write(tData[q]);
-		}
-
 		// Now, save our block data.
 		if (newData == null)
 		{
-			for (int y = HEIGHT - 1; y >= 0; y--)
+			for (int x = 0; x < WIDTH; x++)
 			{
 				for (int z = 0; z < DEPTH; z++)
 				{
-					for (int x = 0; x < WIDTH; x++)
+					for (int y = HEIGHT - 1; y >= 0; y--)
 					{
 						// Data is saved by chunk.
 						int[] blockdata;
