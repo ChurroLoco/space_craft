@@ -34,15 +34,14 @@ public class TerrainGenerator
 				// If we can't find our value, create a new one.
 				if (tData.data[i] <= 0)
 				{
-					Debug.Log(string.Format("{0} MADE [{1}]", sector.name, i));
-					tData.data[i] = Random.Range(0.5f, 1.2f);
+					tData.data[i] = Random.Range(0.4f, 1.2f);
+					//Debug.Log(string.Format("{0} GENERATED EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
+				}
+				else
+				{
+					//Debug.Log(string.Format("{0} GOT ADJECENT EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
 				}
 			}
-			else
-			{
-				Debug.Log(string.Format("{0} FOUND [{1}] in File", sector.name, i));
-			}
-
 		}
 
 		tData.Save(string.Format("{0}/secdata", Application.persistentDataPath), string.Format("tData_{0}_{1}.scs", sector.xIndex, sector.zIndex));
@@ -70,15 +69,22 @@ public class TerrainGenerator
 								for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
 								{
 									// Block Level.
-									xFreq = Mathf.Lerp(tData.data[0], tData.data[1], ((float)(cx * Chunk.WIDTH) + x) / (float)(Sector.WIDTH * Chunk.WIDTH) - 1);
-									zFreq = Mathf.Lerp(tData.data[2], tData.data[3], ((float)(cz * Chunk.DEPTH) + z) / (float)(Sector.DEPTH * Chunk.DEPTH) - 1);
+									xFreq = Mathf.Lerp(tData.data[0], tData.data[1], ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1));
+									zFreq = Mathf.Lerp(tData.data[2], tData.data[3], ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1));
 
 									float xWorldPos = (((Sector.WIDTH * chunk.sector.xIndex) + cx) * Chunk.WIDTH) + x;
 									float yWorldPos = (((Sector.HEIGHT * chunk.sector.yIndex) + cy) * Chunk.HEIGHT) + y;
 									float zWorldPos = (((Sector.DEPTH * chunk.sector.zIndex) + cz) * Chunk.DEPTH) + z;
+								
+									// It would seem that differences in frequencies still exist between sectors. 
+									// More Experimentation is needed to figure out why.
 
-									float xPerlin = Mathf.PerlinNoise((xWorldPos * xFreq) / (Chunk.HEIGHT * Sector.HEIGHT), (zWorldPos * zFreq)/ (Chunk.DEPTH * Sector.DEPTH));
-									//float zPerlin = Mathf.PerlinNoise((zWorldPos * zFreq)/ (Chunk.DEPTH * Sector.DEPTH), (xWorldPos * xFreq) / (Chunk.HEIGHT * Sector.HEIGHT));
+
+									float xTick = (xWorldPos + (xFreq * 10)) / (Chunk.DEPTH * Sector.DEPTH);
+									float zTick = (zWorldPos + (zFreq * 10)) / (Chunk.DEPTH * Sector.DEPTH);
+
+									float xPerlin = Mathf.PerlinNoise(xTick, zTick);
+									float zPerlin = Mathf.PerlinNoise(zTick, xTick);
 									
 									float topCutOff = bottom + ((top - bottom) * xPerlin);
 									//float bottomCutOff = (bottom * 0.75f) + ((top - bottom) * zPerlin);
@@ -137,7 +143,6 @@ public class TerrainGenerator
 				}
 
 				result = tData[index];
-				Debug.Log(string.Format("FOUND [{0}] in {1}", index, fileName));
 				bReader.Close();
 			}
 		}
