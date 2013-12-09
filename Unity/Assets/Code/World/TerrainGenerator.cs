@@ -18,39 +18,62 @@ public class TerrainGenerator
 				// Try to get data from sectors around us.
 				switch (i)
 				{
-					case (int)SectorTerrainData.DATA_VALUES.xFreqStart:
-						tData.data[i] = GetTData(sector.xIndex + 1, sector.zIndex, (int)SectorTerrainData.DATA_VALUES.xFreqEnd);
+					case (int)SectorTerrainData.DATA_VALUES.x1:
+						tData.data[i] = GetTData(sector.xIndex - 1, sector.zIndex, (int)SectorTerrainData.DATA_VALUES.x2); // +1
 						break;
-					case (int)SectorTerrainData.DATA_VALUES.xFreqEnd:
-						tData.data[i] = GetTData(sector.xIndex - 1, sector.zIndex, (int)SectorTerrainData.DATA_VALUES.xFreqStart);
+					case (int)SectorTerrainData.DATA_VALUES.x2:
+						tData.data[i] = GetTData(sector.xIndex + 1, sector.zIndex, (int)SectorTerrainData.DATA_VALUES.x1); // -1
 						break;
-					case (int)SectorTerrainData.DATA_VALUES.zFreqStart:
-						tData.data[i] = GetTData(sector.xIndex, sector.zIndex + 1, (int)SectorTerrainData.DATA_VALUES.zFreqEnd);
+					case (int)SectorTerrainData.DATA_VALUES.z1:
+						tData.data[i] = GetTData(sector.xIndex, sector.zIndex - 1, (int)SectorTerrainData.DATA_VALUES.z2); // +1
 						break;
-					case (int)SectorTerrainData.DATA_VALUES.zFreqEnd:
-						tData.data[i] = GetTData(sector.xIndex, sector.zIndex - 1, (int)SectorTerrainData.DATA_VALUES.zFreqStart);
+					case (int)SectorTerrainData.DATA_VALUES.z2:
+						tData.data[i] = GetTData(sector.xIndex, sector.zIndex + 1, (int)SectorTerrainData.DATA_VALUES.z1); // -1
 						break;
 				}
 				// If we can't find our value, create a new one.
 				if (tData.data[i] <= 0)
 				{
-					tData.data[i] = Random.Range(0.4f, 1.2f);
-					//Debug.Log(string.Format("{0} GENERATED EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
+					// When adding random, ensure that the amount added is (32 * freq)
+
+					float random = Random.Range(0.5f, 2.0f) * (Sector.WIDTH * Chunk.WIDTH);
+					switch (i)
+					{
+						case (int)SectorTerrainData.DATA_VALUES.x1:
+						tData.data[i] = //tData.data[i+1] > 0 ? tData.data[i+1] - random : 
+							((Sector.WIDTH * sector.xIndex) * Chunk.WIDTH);// - random;
+						break;
+						case (int)SectorTerrainData.DATA_VALUES.x2:
+						tData.data[i] = //tData.data[i-1] > 0 ? tData.data[i-1] + random : 
+							((Sector.WIDTH * (sector.xIndex + 1)) * Chunk.WIDTH) - 1.0f;// + random;
+						break;
+						case (int)SectorTerrainData.DATA_VALUES.z1:
+						tData.data[i] = //tData.data[i+1] > 0 ? tData.data[i+1] - random : 
+							((Sector.DEPTH * sector.zIndex) * Chunk.DEPTH);// - random;
+						break;
+						case (int)SectorTerrainData.DATA_VALUES.z2:
+						tData.data[i] = //tData.data[i-1] > 0 ? tData.data[i-1] + random : 
+							((Sector.DEPTH * (sector.zIndex + 1)) * Chunk.DEPTH) - 1.0f;// + random;
+						break;
+					}
+					Debug.Log(string.Format("{0} GENERATED EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
 				}
 				else
 				{
-					//Debug.Log(string.Format("{0} GOT ADJECENT EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
+					Debug.Log(string.Format("{0} GOT ADJECENT EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
 				}
 			}
 		}
 
 		tData.Save(string.Format("{0}/secdata", Application.persistentDataPath), string.Format("tData_{0}_{1}.scs", sector.xIndex, sector.zIndex));
 
-		float xFreq = 0;
-		float zFreq = 0;
+		// Stupid constants needed to get a "good" perlin spread. 
+		float xTick = 0.035f;
+		float zTick = 0.035f;
 
-		float top = 80;
-		float bottom = 24;
+		float top = 64;
+		float bottom = 16;
+
 		// Sector Level.
 		for (int cx = 0; cx < Sector.WIDTH; cx++) 
 		{
@@ -69,24 +92,26 @@ public class TerrainGenerator
 								for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
 								{
 									// Block Level.
-									xFreq = Mathf.Lerp(tData.data[0], tData.data[1], ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1));
-									zFreq = Mathf.Lerp(tData.data[2], tData.data[3], ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1));
 
-									float xWorldPos = (((Sector.WIDTH * chunk.sector.xIndex) + cx) * Chunk.WIDTH) + x;
-									float yWorldPos = (((Sector.HEIGHT * chunk.sector.yIndex) + cy) * Chunk.HEIGHT) + y;
-									float zWorldPos = (((Sector.DEPTH * chunk.sector.zIndex) + cz) * Chunk.DEPTH) + z;
+									// Turn on independent positioning.
+									// float xPos = (((Sector.WIDTH * sector.xIndex) + cx) * Chunk.WIDTH) + x;
+									// float zPos = (((Sector.DEPTH * sector.zIndex) + cz) * Chunk.DEPTH) + z;
+
+									// Turn on dependent positioning.
+									//float xPos = tData.data[0] + ((cx * Chunk.WIDTH) + x);
+									//float zPos = tData.data[2] + ((cz * Chunk.DEPTH) + z);
 								
-									// It would seem that differences in frequencies still exist between sectors. 
-									// More Experimentation is needed to figure out why.
+									// Turn on dependant lerp positioning.
+									float xPos = Mathf.Lerp(tData.data[0], tData.data[1], ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1));
+									float zPos = Mathf.Lerp(tData.data[2], tData.data[3], ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1));
 
+									float yWorldPos = (((Sector.HEIGHT * sector.yIndex) + cy) * Chunk.HEIGHT) + y;
 
-									float xTick = (xWorldPos + (xFreq * 10)) / (Chunk.DEPTH * Sector.DEPTH);
-									float zTick = (zWorldPos + (zFreq * 10)) / (Chunk.DEPTH * Sector.DEPTH);
+									float xPerlin = Mathf.PerlinNoise(xPos * xTick, zPos * zTick);
+									float zPerlin = Mathf.PerlinNoise(zPos * zTick, xPos * xTick);
 
-									float xPerlin = Mathf.PerlinNoise(xTick, zTick);
-									float zPerlin = Mathf.PerlinNoise(zTick, xTick);
-									
-									float topCutOff = bottom + ((top - bottom) * xPerlin);
+									float topCutOff = bottom + ((top - bottom) * ((xPerlin + zPerlin) / 2.0f));
+
 									//float bottomCutOff = (bottom * 0.75f) + ((top - bottom) * zPerlin);
 									if (yWorldPos <= topCutOff)
 									{
@@ -156,10 +181,10 @@ public class SectorTerrainData
 	public const int VALUE_COUNT = 4;
 	public enum DATA_VALUES
 	{
-		xFreqStart = 0,
-		xFreqEnd,
-		zFreqStart,
-		zFreqEnd
+		x1 = 0,
+		x2,
+		z1,
+		z2
 	}
 
 	public float[] data = new float[VALUE_COUNT];
