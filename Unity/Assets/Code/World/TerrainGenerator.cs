@@ -34,9 +34,9 @@ public class TerrainGenerator
 				// If we can't find our value, create a new one.
 				if (tData.data[i] <= 0)
 				{
-					// When adding random, ensure that the amount added is (32 * freq)
-
-					float random = Random.Range(0.5f, 2.0f) * (Sector.WIDTH * Chunk.WIDTH);
+					//tData.data[i] = Random.Range(0.035f, 0.05f);
+					///*
+					//float posRandom = Random.Range(0.5f, 2.0f) * (Sector.WIDTH * Chunk.WIDTH);
 					switch (i)
 					{
 						case (int)SectorTerrainData.DATA_VALUES.x1:
@@ -56,6 +56,7 @@ public class TerrainGenerator
 							((Sector.DEPTH * (sector.zIndex + 1)) * Chunk.DEPTH) - 1.0f;// + random;
 						break;
 					}
+					//*/
 					Debug.Log(string.Format("{0} GENERATED EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
 				}
 				else
@@ -64,6 +65,9 @@ public class TerrainGenerator
 				}
 			}
 		}
+
+		// Perhaps attempt a different system. Dynamically change the tick size (test as linear ping pong between 0.001 and 0.005 between sectors) 
+		// Resave x and z Pos to include tick value? Perhaps save TickSizes instead of x and z Pos and move based on world Pos?  
 
 		tData.Save(string.Format("{0}/secdata", Application.persistentDataPath), string.Format("tData_{0}_{1}.scs", sector.xIndex, sector.zIndex));
 
@@ -94,8 +98,8 @@ public class TerrainGenerator
 									// Block Level.
 
 									// Turn on independent positioning.
-									// float xPos = (((Sector.WIDTH * sector.xIndex) + cx) * Chunk.WIDTH) + x;
-									// float zPos = (((Sector.DEPTH * sector.zIndex) + cz) * Chunk.DEPTH) + z;
+									 //float xPos = (((Sector.WIDTH * sector.xIndex) + cx) * Chunk.WIDTH) + x;
+									 //float zPos = (((Sector.DEPTH * sector.zIndex) + cz) * Chunk.DEPTH) + z;
 
 									// Turn on dependent positioning.
 									//float xPos = tData.data[0] + ((cx * Chunk.WIDTH) + x);
@@ -104,6 +108,10 @@ public class TerrainGenerator
 									// Turn on dependant lerp positioning.
 									float xPos = Mathf.Lerp(tData.data[0], tData.data[1], ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1));
 									float zPos = Mathf.Lerp(tData.data[2], tData.data[3], ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1));
+
+									// Turn on lerping of tick sizes.
+									//xTick = Mathf.Lerp(tData.data[0], tData.data[1], ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1));
+									//zTick = Mathf.Lerp(tData.data[2], tData.data[3], ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1));
 
 									float yWorldPos = (((Sector.HEIGHT * sector.yIndex) + cy) * Chunk.HEIGHT) + y;
 
