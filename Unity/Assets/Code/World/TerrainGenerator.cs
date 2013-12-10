@@ -139,7 +139,6 @@ public class TerrainGenerator
 								float zPerlin = Mathf.PerlinNoise(zPos * 0.035f, xPos * 0.035f);
 								
 								float topCutOff = bottom + ((top - bottom) * (yTick * ((xPerlin + zPerlin) / 2.0f)));
-								float bottomCutOff = 1 + ((top - bottom) * ((1 - yTick) * ((xPerlin + zPerlin) / 2.0f)));
 								// For Each column of Blocks Within a Chunk.
 								for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
 								{
@@ -166,7 +165,8 @@ public class TerrainGenerator
 										blockData[pos] = 0;
 									}
 
-									if (yWorldPos > bottomCutOff && yWorldPos < topCutOff * 0.35f)
+									if (yWorldPos > 1 + (((top - bottom) * ((1 - yTick) * ((xPerlin + zPerlin) / 2.0f))) * 0.5f) && 
+									    yWorldPos < (top * 0.25f) - ((top - bottom) * ((1 - yTick) * ((xPerlin + zPerlin) / 2.0f))))
 									{
 										blockData[pos] = 0;
 									}
