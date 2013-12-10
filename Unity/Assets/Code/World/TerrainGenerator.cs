@@ -11,58 +11,98 @@ public class TerrainGenerator
 		int[] blockData = new int[Sector.HEIGHT * Sector.DEPTH * Sector.WIDTH * Chunk.HEIGHT * Chunk.DEPTH * Chunk.WIDTH];
 		int pos = 0;
 
+		float top = 64;
+		float bottom = 32;
+
+		// First gather our sector terrain Data. Start with the values stored in each corner.
 		for (int i = 0; i < SectorTerrainData.VALUE_COUNT; i++)
 		{
 			if (tData.data[i] <= 0)
 			{
-				// Try to get data from sectors around us.
+				// Try to get data from the corners around ours.
 				switch (i)
 				{
-					case (int)SectorTerrainData.DATA_VALUES.x1:
-						tData.data[i] = GetTData(sector.xIndex - 1, sector.zIndex, (int)SectorTerrainData.DATA_VALUES.x2); // +1
-						break;
-					case (int)SectorTerrainData.DATA_VALUES.x2:
-						tData.data[i] = GetTData(sector.xIndex + 1, sector.zIndex, (int)SectorTerrainData.DATA_VALUES.x1); // -1
-						break;
-					case (int)SectorTerrainData.DATA_VALUES.z1:
-						tData.data[i] = GetTData(sector.xIndex, sector.zIndex - 1, (int)SectorTerrainData.DATA_VALUES.z2); // +1
-						break;
-					case (int)SectorTerrainData.DATA_VALUES.z2:
-						tData.data[i] = GetTData(sector.xIndex, sector.zIndex + 1, (int)SectorTerrainData.DATA_VALUES.z1); // -1
-						break;
+				case 0: // Top Right
+					tData.data[i] = GetTDataCorner(sector.xIndex + 1, sector.zIndex, 1);
+					if (tData.data[i] <= 0)
+					{
+					tData.data[i] = GetTDataCorner(sector.xIndex, sector.zIndex + 1, 3);
+						if (tData.data[i] <= 0)
+						{
+						tData.data[i] = GetTDataCorner(sector.xIndex + 1, sector.zIndex + 1, 2);
+						} 
+					}
+					break;
+
+				case 1: // Top Left
+					tData.data[i] = GetTDataCorner(sector.xIndex - 1, sector.zIndex, 0);
+					if (tData.data[i] <= 0)
+					{
+						tData.data[i] = GetTDataCorner(sector.xIndex, sector.zIndex + 1, 2);
+						if (tData.data[i] <= 0)
+						{
+							tData.data[i] = GetTDataCorner(sector.xIndex - 1, sector.zIndex + 1, 3);
+						} 
+					}
+					break;
+
+				case 2: // Bottom Left
+					tData.data[i] = GetTDataCorner(sector.xIndex - 1, sector.zIndex, 3);
+					if (tData.data[i] <= 0)
+					{
+						tData.data[i] = GetTDataCorner(sector.xIndex, sector.zIndex - 1, 1);
+						if (tData.data[i] <= 0)
+						{
+							tData.data[i] = GetTDataCorner(sector.xIndex - 1, sector.zIndex - 1, 0);
+						} 
+					}
+					break;
+
+				case 3: // Bottom Right
+					tData.data[i] = GetTDataCorner(sector.xIndex + 1, sector.zIndex, 2);
+					if (tData.data[i] <= 0)
+					{
+						tData.data[i] = GetTDataCorner(sector.xIndex, sector.zIndex - 1, 0);
+						if (tData.data[i] <= 0)
+						{
+							tData.data[i] = GetTDataCorner(sector.xIndex + 1, sector.zIndex - 1, 1);
+						} 
+					}
+					break;
 				}
 				// If we can't find our value, create a new one.
 				if (tData.data[i] <= 0)
 				{
-					//tData.data[i] = Random.Range(0.1f, 0.9f);
+					tData.data[i] = Mathf.SmoothStep(0.0f, 1.0f, Random.Range(0.0f, 1.0f));
 
-					// Turn on for index based stuff.
-					float random = Random.Range(0.5f, 2.0f) * (Sector.WIDTH * Chunk.WIDTH);
+					// Turn on Adjacent Based Location.
+					/*
+					float random = Random.Range(-1.0f, 1.0f) * (Sector.WIDTH * Chunk.WIDTH);
 					switch (i)
 					{
 						case (int)SectorTerrainData.DATA_VALUES.x1:
-						tData.data[i] = tData.data[i+1] > 0 ? tData.data[i+1] - random : 
-							((Sector.WIDTH * sector.xIndex) * Chunk.WIDTH) - random;
+						tData.data[i] = //tData.data[i+1] > 0 ? tData.data[i+1] - random : 
+							((Sector.WIDTH * sector.xIndex) * Chunk.WIDTH);// + random;
 						break;
 						case (int)SectorTerrainData.DATA_VALUES.x2:
-						tData.data[i] = tData.data[i-1] > 0 ? tData.data[i-1] + random : 
-							((Sector.WIDTH * (sector.xIndex + 1)) * Chunk.WIDTH) - 1.0f + random;
+						tData.data[i] = //tData.data[i-1] > 0 ? tData.data[i-1] + random : 
+							((Sector.WIDTH * (sector.xIndex + 1)) * Chunk.WIDTH) - 1.0f;// + random;
 						break;
 						case (int)SectorTerrainData.DATA_VALUES.z1:
-						tData.data[i] = tData.data[i+1] > 0 ? tData.data[i+1] - random : 
-							((Sector.DEPTH * sector.zIndex) * Chunk.DEPTH) - random;
+						tData.data[i] = //tData.data[i+1] > 0 ? tData.data[i+1] - random : 
+							((Sector.DEPTH * sector.zIndex) * Chunk.DEPTH);// - random;
 						break;
 						case (int)SectorTerrainData.DATA_VALUES.z2:
-						tData.data[i] = tData.data[i-1] > 0 ? tData.data[i-1] + random : 
-							((Sector.DEPTH * (sector.zIndex + 1)) * Chunk.DEPTH) - 1.0f + random;
+						tData.data[i] = //tData.data[i-1] > 0 ? tData.data[i-1] + random : 
+							((Sector.DEPTH * (sector.zIndex + 1)) * Chunk.DEPTH);// - 1.0f + random;
 						break;
 					}
 					//*/
-					Debug.Log(string.Format("{0} GENERATED EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
+					Debug.Log(string.Format("{0} GENERATED CORNER [{1}] as: {2}", sector.name, i, tData.data[i]));
 				}
 				else
 				{
-					Debug.Log(string.Format("{0} GOT ADJECENT EDGE [{1}] as: {2}", sector.name, i, tData.data[i]));
+					Debug.Log(string.Format("{0} FOUND CORNER [{1}] as: {2}", sector.name, i, tData.data[i]));
 				}
 			}
 		}
@@ -72,9 +112,6 @@ public class TerrainGenerator
 		// Stupid constants needed to get a "good" perlin spread. 
 		float xTick = 0.035f;
 		float zTick = 0.035f;
-
-		float top = 64;
-		float bottom = 16;
 
 		// Sector Level.
 		for (int cx = 0; cx < Sector.WIDTH; cx++) 
@@ -91,32 +128,30 @@ public class TerrainGenerator
 						{
 							for (int z = 0; z < Chunk.DEPTH; z++)
 							{
+								// For Each column of Blocks Within a Chunk.
+
+								// Turn on independent positioning.
+								float xPos = (((Sector.WIDTH * sector.xIndex) + cx) * Chunk.WIDTH) + x;
+								float zPos = (((Sector.DEPTH * sector.zIndex) + cz) * Chunk.DEPTH) + z;
+								
+								// Turn on lerping of random sector height map.
+								float xDist = ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1);
+								float zDist = ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1);
+								xTick = Mathf.SmoothStep(tData.data[1], tData.data[0], xDist);
+								zTick = Mathf.SmoothStep(tData.data[2], tData.data[3], xDist);
+								float yTick = Mathf.SmoothStep(zTick, xTick, zDist);
+								
+								float xPerlin = Mathf.PerlinNoise(xPos * 0.035f, zPos * 0.035f);
+								float zPerlin = Mathf.PerlinNoise(zPos * 0.035f, xPos * 0.035f);
+								
+								float topCutOff = bottom + ((top - bottom) * yTick * ((xPerlin + zPerlin) / 2.0f));
+
+
 								for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
 								{
 									// Block Level.
 
-									// Turn on independent positioning.
-									//float xPos = (((Sector.WIDTH * sector.xIndex) + cx) * Chunk.WIDTH) + x;
-									//float zPos = (((Sector.DEPTH * sector.zIndex) + cz) * Chunk.DEPTH) + z;
-
-									// Turn on dependent positioning.
-									//float xPos = tData.data[0] + ((cx * Chunk.WIDTH) + x);
-									//float zPos = tData.data[2] + ((cz * Chunk.DEPTH) + z);
-								
-									// Turn on dependant lerp positioning.
-									//float xPos = Mathf.Lerp(tData.data[0], tData.data[1], ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1));
-									//float zPos = Mathf.Lerp(tData.data[2], tData.data[3], ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1));
-
-									// Turn on lerping of tick sizes.
-									xTick = Mathf.Lerp(tData.data[0], tData.data[1], ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1));
-									zTick = Mathf.Lerp(tData.data[2], tData.data[3], ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1));
-
 									float yWorldPos = (((Sector.HEIGHT * sector.yIndex) + cy) * Chunk.HEIGHT) + y;
-
-									float xPerlin = xTick; //Mathf.PerlinNoise(xPos * xTick, zPos * zTick); //Mathf.Sin(xPos * xTick);
-									float zPerlin = zTick; //Mathf.PerlinNoise(zPos * zTick, xPos * xTick); //Mathf.Sin(zPos * zTick);
-
-									float topCutOff = bottom + ((top - bottom) * ((xPerlin + zPerlin) / 2.0f));
 
 									//float bottomCutOff = (bottom * 0.75f) + ((top - bottom) * zPerlin);
 									if (yWorldPos <= topCutOff)
@@ -153,7 +188,7 @@ public class TerrainGenerator
 
 
 	// Loads the given Sector's file and returns it's Freq value denoted by index.
-	public static float GetTData(int xIndex, int zIndex, int index)
+	public static float GetTDataCorner(int xIndex, int zIndex, int index)
 	{
 		string filePath = string.Format("{0}/secdata", Application.persistentDataPath);
 		string fileName = string.Format("tData_{0}_{1}.scs", xIndex, zIndex);
@@ -187,10 +222,10 @@ public class SectorTerrainData
 	public const int VALUE_COUNT = 4;
 	public enum DATA_VALUES
 	{
-		x1 = 0,
-		x2,
-		z1,
-		z2
+		TR = 0,
+		TL,
+		BL,
+		BR
 	}
 
 	public float[] data = new float[VALUE_COUNT];
