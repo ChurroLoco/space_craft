@@ -12,7 +12,7 @@ public class TerrainGenerator
 		int pos = 0;
 
 		float top = 64;
-		float bottom = 32;
+		float bottom = 16;
 
 		// First gather our sector terrain Data. Start with the values stored in each corner.
 		for (int i = 0; i < SectorTerrainData.VALUE_COUNT; i++)
@@ -109,10 +109,6 @@ public class TerrainGenerator
 
 		tData.Save(string.Format("{0}/secdata", Application.persistentDataPath), string.Format("tData_{0}_{1}.scs", sector.xIndex, sector.zIndex));
 
-		// Stupid constants needed to get a "good" perlin spread. 
-		float xTick = 0.035f;
-		float zTick = 0.035f;
-
 		// Sector Level.
 		for (int cx = 0; cx < Sector.WIDTH; cx++) 
 		{
@@ -128,8 +124,6 @@ public class TerrainGenerator
 						{
 							for (int z = 0; z < Chunk.DEPTH; z++)
 							{
-								// For Each column of Blocks Within a Chunk.
-
 								// Turn on independent positioning.
 								float xPos = (((Sector.WIDTH * sector.xIndex) + cx) * Chunk.WIDTH) + x;
 								float zPos = (((Sector.DEPTH * sector.zIndex) + cz) * Chunk.DEPTH) + z;
@@ -137,33 +131,30 @@ public class TerrainGenerator
 								// Turn on lerping of random sector height map.
 								float xDist = ((float)(cx * Chunk.WIDTH) + x) / ((float)(Sector.WIDTH * Chunk.WIDTH) - 1);
 								float zDist = ((float)(cz * Chunk.DEPTH) + z) / ((float)(Sector.DEPTH * Chunk.DEPTH) - 1);
-								xTick = Mathf.SmoothStep(tData.data[1], tData.data[0], xDist);
-								zTick = Mathf.SmoothStep(tData.data[2], tData.data[3], xDist);
+								float xTick = Mathf.SmoothStep(tData.data[1], tData.data[0], xDist);
+								float zTick = Mathf.SmoothStep(tData.data[2], tData.data[3], xDist);
 								float yTick = Mathf.SmoothStep(zTick, xTick, zDist);
 								
 								float xPerlin = Mathf.PerlinNoise(xPos * 0.035f, zPos * 0.035f);
 								float zPerlin = Mathf.PerlinNoise(zPos * 0.035f, xPos * 0.035f);
 								
-								float topCutOff = bottom + ((top - bottom) * yTick * ((xPerlin + zPerlin) / 2.0f));
-
-
+								float topCutOff = bottom + ((top - bottom) * (yTick * ((xPerlin + zPerlin) / 2.0f)));
+								float bottomCutOff = 1 + ((top - bottom) * ((1 - yTick) * ((xPerlin + zPerlin) / 2.0f)));
+								// For Each column of Blocks Within a Chunk.
 								for (int y = Chunk.HEIGHT - 1; y >= 0; y--)
 								{
-									// Block Level.
-
 									float yWorldPos = (((Sector.HEIGHT * sector.yIndex) + cy) * Chunk.HEIGHT) + y;
 
-									//float bottomCutOff = (bottom * 0.75f) + ((top - bottom) * zPerlin);
 									if (yWorldPos <= topCutOff)
 									{
 										if (yWorldPos <= (topCutOff * 0.15f))
 										{
 											blockData[pos] = 1;
 										}
-										//else if (yWorldPos <= bottomCutOff)
-										//{
-										//	blockData[pos] = 5;
-										//}
+										else if (yWorldPos <= topCutOff * 0.65f || yWorldPos < top * 0.35f)
+										{
+											blockData[pos] = 5;
+										}
 										else
 										{
 											blockData[pos] = 2;
@@ -171,6 +162,11 @@ public class TerrainGenerator
 										
 									}
 									else
+									{
+										blockData[pos] = 0;
+									}
+
+									if (yWorldPos > bottomCutOff && yWorldPos < topCutOff * 0.35f)
 									{
 										blockData[pos] = 0;
 									}
